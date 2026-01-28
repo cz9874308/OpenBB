@@ -1,4 +1,8 @@
-"""Nasdaq provider module."""
+"""Nasdaq 数据提供者模块
+
+纳斯达克市场数据 API 集成。
+提供股票筛选、日历事件、零售交易数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_nasdaq.models.calendar_dividend import NasdaqCalendarDividendFetcher

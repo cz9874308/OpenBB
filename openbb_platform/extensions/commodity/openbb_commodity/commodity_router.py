@@ -1,4 +1,7 @@
-"""The Commodity router."""
+"""大宗商品路由模块
+
+定义大宗商品相关的 API 端点和命令。
+"""
 
 # pylint: disable=unused-argument,unused-import
 # flake8: noqa: F401

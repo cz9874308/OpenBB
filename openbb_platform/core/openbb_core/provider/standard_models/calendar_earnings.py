@@ -1,4 +1,7 @@
-"""Earnings Calendar Standard Model."""
+"""财报日历标准模型
+
+本模块定义了财报日历查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -12,7 +15,15 @@ from pydantic import Field
 
 
 class CalendarEarningsQueryParams(QueryParams):
-    """Earnings Calendar Query."""
+    """财报日历查询参数
+
+    Attributes
+    ----------
+    start_date : date | None
+        开始日期
+    end_date : date | None
+        结束日期
+    """
 
     start_date: dateType | None = Field(
         default=None, description=QUERY_DESCRIPTIONS.get("start_date", "")
@@ -23,7 +34,10 @@ class CalendarEarningsQueryParams(QueryParams):
 
 
 class CalendarEarningsData(Data):
-    """Earnings Calendar Data."""
+    """财报日历数据
+
+    包含公司的财报发布日期和预期数据。
+    """
 
     report_date: dateType = Field(description="The date of the earnings report.")
     symbol: str = Field(description=DATA_DESCRIPTIONS.get("symbol", ""))

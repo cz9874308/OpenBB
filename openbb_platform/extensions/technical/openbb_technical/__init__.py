@@ -1,1 +1,4 @@
-"""OpenBB Technical Analysis Extension."""
+"""技术分析扩展模块
+
+提供各种技术分析指标和工具的 API 端点。
+"""

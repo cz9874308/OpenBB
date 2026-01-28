@@ -1,1 +1,4 @@
-"""OpenBB ETF Extension."""
+"""ETF 数据扩展模块
+
+提供交易所交易基金 (ETF) 市场数据相关的 API 端点。
+"""

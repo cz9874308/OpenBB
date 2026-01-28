@@ -1,4 +1,7 @@
-"""Defaults model."""
+"""默认值模型模块
+
+本模块定义了命令的默认参数设置。
+"""
 
 from typing import Any
 from warnings import warn
@@ -8,7 +11,32 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class Defaults(BaseModel):
-    """Defaults."""
+    """默认值设置
+
+    存储命令的默认参数配置，允许用户为特定命令预设参数值。
+
+    Attributes
+    ----------
+    commands : dict[str, dict[str, Any]]
+        命令路径到默认参数的映射
+
+    示例
+    ----
+
+    在 user_settings.json 中配置：
+
+    ```json
+    {
+        "defaults": {
+            "commands": {
+                "equity.price.historical": {
+                    "provider": ["yfinance"]
+                }
+            }
+        }
+    }
+    ```
+    """
 
     model_config = ConfigDict(validate_assignment=True, populate_by_name=True)
 
@@ -18,7 +46,7 @@ class Defaults(BaseModel):
     )
 
     def __repr__(self) -> str:
-        """Return string representation."""
+        """返回字符串表示"""
         return f"{self.__class__.__name__}\n\n" + "\n".join(
             f"{k}: {v}" for k, v in self.model_dump().items()
         )
@@ -26,7 +54,11 @@ class Defaults(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def validate_before(cls, values: dict) -> dict:
-        """Validate model (before)."""
+        """验证模型（前置处理）
+
+        将旧版 'routes' 键转换为 'commands' 键，
+        并规范化命令路径格式。
+        """
         key = "commands"
         if "routes" in values:
             if not values.get("routes"):
@@ -51,6 +83,12 @@ class Defaults(BaseModel):
         return new_values
 
     def update(self, incoming: "Defaults"):
-        """Update current defaults."""
+        """更新当前默认值
+
+        Parameters
+        ----------
+        incoming : Defaults
+            要合并的默认值对象
+        """
         incoming_commands = incoming.model_dump(exclude_none=True).get("commands", {})
         self.__dict__["commands"].update(incoming_commands)

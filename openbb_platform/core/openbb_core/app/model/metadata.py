@@ -1,4 +1,7 @@
-"""Metadata model."""
+"""元数据模型模块
+
+本模块定义了命令执行的元数据模型。
+"""
 
 from collections.abc import Sequence
 from datetime import datetime
@@ -9,20 +12,34 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class Metadata(BaseModel):
-    """Metadata of a command execution."""
+    """命令执行元数据
+
+    记录命令执行的相关信息，包括参数、耗时、路由和时间戳。
+
+    Attributes
+    ----------
+    arguments : dict[str, Any]
+        命令参数
+    duration : int
+        执行耗时（纳秒）
+    route : str
+        命令路由
+    timestamp : datetime
+        执行开始时间戳
+    """
 
     arguments: dict[str, Any] = Field(
         default_factory=dict,
-        description="Arguments of the command.",
+        description="命令参数",
     )
     duration: int = Field(
-        description="Execution duration in nano second of the command."
+        description="执行耗时（纳秒）"
     )
-    route: str = Field(description="Route of the command.")
-    timestamp: datetime = Field(description="Execution starting timestamp.")
+    route: str = Field(description="命令路由")
+    timestamp: datetime = Field(description="执行开始时间戳")
 
     def __repr__(self) -> str:
-        """Return string representation."""
+        """返回字符串表示"""
         return f"{self.__class__.__name__}\n\n" + "\n".join(
             f"{k}: {v}" for k, v in self.model_dump().items()
         )
@@ -30,13 +47,12 @@ class Metadata(BaseModel):
     @field_validator("arguments")
     @classmethod
     def scale_arguments(cls, v):
-        """Scale arguments.
+        """缩放参数
 
-        This function is meant to limit the size of the input arguments of a command.
-        If the type is one of the following: `Data`, `List[Data]`, `DataFrame`, `List[DataFrame]`,
-        `Series`, `List[Series]` or `ndarray`, the value of the argument is swapped by a dictionary
-        containing the type and the columns. If the type is not one of the previous, the
-        value is kept or trimmed to 80 characters.
+        此函数用于限制命令输入参数的大小。
+        如果类型是以下之一：Data、List[Data]、DataFrame、List[DataFrame]、
+        Series、List[Series] 或 ndarray，则参数值会被替换为包含类型和列名的字典。
+        如果类型不是上述之一，则保留原值或截断到 80 个字符。
         """
         # pylint: disable=import-outside-toplevel
         from inspect import isclass  # noqa

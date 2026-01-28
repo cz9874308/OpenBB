@@ -1,1 +1,4 @@
-"""The Currency router init."""
+"""货币数据扩展模块
+
+提供外汇 (FX) 市场数据相关的 API 端点。
+"""

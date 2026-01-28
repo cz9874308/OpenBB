@@ -1,4 +1,34 @@
-"""Command runner module."""
+"""命令运行器模块
+
+本模块定义了 OpenBB 命令执行的核心组件。
+
+核心组件
+--------
+
+- **ExecutionContext**: 执行上下文，封装命令执行所需的所有环境信息
+- **ParametersBuilder**: 参数构建器，负责参数合并、验证和类型转换
+- **StaticCommandRunner**: 静态命令运行器，执行命令并处理结果
+- **CommandRunner**: 命令运行器，提供高级接口供外部调用
+
+执行流程
+--------
+
+```
+CommandRunner.run(route, **kwargs)
+         ↓
+    ExecutionContext
+         ↓
+    ParametersBuilder.build()
+         ↓
+    StaticCommandRunner._execute_func()
+         ↓
+    func(**kwargs) → OBBject
+         ↓
+    后处理（图表、日志、回调）
+         ↓
+    返回 OBBject
+```
+"""
 
 # pylint: disable=R0903
 from collections.abc import Callable
@@ -32,9 +62,24 @@ if TYPE_CHECKING:
 
 
 class ExecutionContext:
-    """Execution context."""
+    """执行上下文
 
-    # For checking if the command specifies no validation in the API Route
+    封装命令执行所需的所有环境信息，包括命令映射、路由、
+    系统设置和用户设置。
+
+    Attributes
+    ----------
+    command_map : CommandMap
+        命令映射实例
+    route : str
+        当前执行的路由路径
+    system_settings : SystemSettings
+        系统设置
+    user_settings : UserSettings
+        用户设置
+    """
+
+    # 用于检查命令是否在 API Route 中指定了 no_validate
     _route_map = PathHandler.build_route_map()
 
     def __init__(
@@ -44,7 +89,19 @@ class ExecutionContext:
         system_settings: "SystemSettings",
         user_settings: "UserSettings",
     ) -> None:
-        """Initialize the execution context."""
+        """初始化执行上下文
+
+        Parameters
+        ----------
+        command_map : CommandMap
+            命令映射实例
+        route : str
+            要执行的路由路径
+        system_settings : SystemSettings
+            系统设置
+        user_settings : UserSettings
+            用户设置
+        """
         self.command_map = command_map
         self.route = route
         self.system_settings = system_settings
@@ -52,16 +109,36 @@ class ExecutionContext:
 
     @property
     def api_route(self) -> "APIRoute":
-        """API route."""
+        """获取 API 路由定义"""
         return self._route_map[self.route]  # type: ignore
 
 
 class ParametersBuilder:
-    """Build parameters for a function."""
+    """参数构建器
+
+    负责函数参数的合并、验证和类型转换。
+
+    ParametersBuilder 处理从用户输入到函数调用的参数转换：
+    - 合并位置参数和关键字参数
+    - 注入命令上下文
+    - 验证参数类型
+    - 处理默认值
+    """
 
     @staticmethod
     def get_polished_parameter_list(func: Callable) -> list[Parameter]:
-        """Get the signature parameters values as a list."""
+        """获取函数签名参数列表
+
+        Parameters
+        ----------
+        func : Callable
+            目标函数
+
+        Returns
+        -------
+        list[Parameter]
+            参数列表
+        """
         sig = signature(func)
         parameter_list = list(sig.parameters.values())
 
@@ -69,7 +146,18 @@ class ParametersBuilder:
 
     @staticmethod
     def get_polished_func(func: Callable) -> Callable:
-        """Remove __authenticated_user_settings from the function signature and annotations."""
+        """从函数签名和注解中移除 __authenticated_user_settings
+
+        Parameters
+        ----------
+        func : Callable
+            目标函数
+
+        Returns
+        -------
+        Callable
+            处理后的函数副本
+        """
         func = deepcopy(func)
         sig = signature(func)
         parameter_map = dict(sig.parameters)
@@ -92,7 +180,24 @@ class ParametersBuilder:
         args: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> dict[str, Any]:
-        """Merge args and kwargs into a single dict."""
+        """合并位置参数和关键字参数
+
+        将 args 和 kwargs 合并为单一的参数字典。
+
+        Parameters
+        ----------
+        func : Callable
+            目标函数
+        args : tuple[Any, ...]
+            位置参数
+        kwargs : dict[str, Any]
+            关键字参数
+
+        Returns
+        -------
+        dict[str, Any]
+            合并后的参数字典
+        """
         args = deepcopy(args)
         kwargs_copy = deepcopy(kwargs)
         parameter_list = cls.get_polished_parameter_list(func=func)
@@ -130,7 +235,26 @@ class ParametersBuilder:
         system_settings: "SystemSettings",
         user_settings: "UserSettings",
     ) -> dict[str, Any]:
-        """Update the command context with the available user and system settings."""
+        """更新命令上下文
+
+        如果函数签名中包含 'cc' 参数，则注入 CommandContext 实例。
+
+        Parameters
+        ----------
+        func : Callable
+            目标函数
+        kwargs : dict[str, Any]
+            参数字典
+        system_settings : SystemSettings
+            系统设置
+        user_settings : UserSettings
+            用户设置
+
+        Returns
+        -------
+        dict[str, Any]
+            更新后的参数字典
+        """
         # pylint: disable=import-outside-toplevel
         from openbb_core.app.model.command_context import CommandContext
 
@@ -148,9 +272,11 @@ class ParametersBuilder:
         extra_params: dict[str, Any],
         model: type[BaseModel],
     ) -> None:
-        """Warn if kwargs received and ignored by the validation model."""
-        # We only check the extra_params annotation because ignored fields
-        # will always be there
+        """警告被忽略的参数
+
+        如果传入的参数不在验证模型中，则发出警告。
+        """
+        # 只检查 extra_params 注解，因为被忽略的字段总是会在那里
         annotation = getattr(
             model.model_fields.get("extra_params", None), "annotation", None
         )
@@ -163,13 +289,13 @@ class ParametersBuilder:
                     continue
                 if p not in valid:
                     warn(
-                        message=f"Parameter '{p}' not found.",
+                        message=f"参数 '{p}' 未找到。",
                         category=OpenBBWarning,
                     )
 
     @staticmethod
     def _as_dict(obj: Any) -> dict[str, Any]:
-        """Safely convert an object to a dict."""
+        """安全地将对象转换为字典"""
         try:
             if isinstance(obj, dict):
                 return obj
@@ -182,7 +308,22 @@ class ParametersBuilder:
         func: Callable,
         kwargs: dict[str, Any],
     ) -> dict[str, Any]:
-        """Validate kwargs and if possible coerce to the correct type."""
+        """验证并转换参数类型
+
+        使用 Pydantic 模型验证参数，并在可能的情况下强制转换为正确的类型。
+
+        Parameters
+        ----------
+        func : Callable
+            目标函数
+        kwargs : dict[str, Any]
+            参数字典
+
+        Returns
+        -------
+        dict[str, Any]
+            验证并转换后的参数字典
+        """
         sig = signature(func)
         fields: dict[str, tuple[Any, Any]] = {}
         for name, param in sig.parameters.items():
@@ -214,7 +355,26 @@ class ParametersBuilder:
         func: Callable,
         kwargs: dict[str, Any],
     ) -> dict[str, Any]:
-        """Build the parameters for a function."""
+        """构建函数参数
+
+        执行完整的参数处理流程：合并、上下文注入、验证。
+
+        Parameters
+        ----------
+        args : tuple[Any, ...]
+            位置参数
+        execution_context : ExecutionContext
+            执行上下文
+        func : Callable
+            目标函数
+        kwargs : dict[str, Any]
+            关键字参数
+
+        Returns
+        -------
+        dict[str, Any]
+            构建完成的参数字典
+        """
         func = cls.get_polished_func(func=func)
         system_settings = execution_context.system_settings
         user_settings = execution_context.user_settings
@@ -238,7 +398,11 @@ class ParametersBuilder:
 
 # pylint: disable=too-few-public-methods
 class StaticCommandRunner:
-    """Static Command Runner."""
+    """静态命令运行器
+
+    提供命令执行的核心逻辑，包括命令调用、图表生成、
+    日志记录和扩展回调触发。
+    """
 
     @classmethod
     async def _command(
@@ -247,7 +411,22 @@ class StaticCommandRunner:
         kwargs: dict[str, Any],
         show_warnings: bool = True,  # pylint: disable=unused-argument   # type: ignore
     ) -> OBBject:
-        """Run a command and return the output."""
+        """执行命令并返回结果
+
+        Parameters
+        ----------
+        func : Callable
+            命令函数
+        kwargs : dict[str, Any]
+            参数字典
+        show_warnings : bool, optional
+            是否显示警告，默认为 True
+
+        Returns
+        -------
+        OBBject
+            命令执行结果
+        """
         obbject = await maybe_coroutine(func, **kwargs)
         if isinstance(obbject, OBBject):
             obbject.provider = getattr(
@@ -263,7 +442,15 @@ class StaticCommandRunner:
         obbject: OBBject,
         **kwargs,
     ) -> None:
-        """Create a chart from the command output."""
+        """从命令输出创建图表
+
+        Parameters
+        ----------
+        obbject : OBBject
+            命令输出对象
+        **kwargs
+            传递给图表生成器的额外参数
+        """
         try:
             if "charting" not in obbject.accessors:
                 raise OpenBBError(
@@ -297,7 +484,20 @@ class StaticCommandRunner:
 
     @classmethod
     def _extract_params(cls, kwargs, key) -> dict:
-        """Extract params models from kwargs and convert to a dictionary."""
+        """从 kwargs 中提取参数模型并转换为字典
+
+        Parameters
+        ----------
+        kwargs : dict
+            参数字典
+        key : str
+            要提取的键名
+
+        Returns
+        -------
+        dict
+            提取的参数字典
+        """
         params = kwargs.get(key, {})
         if hasattr(params, "__dict__"):
             return params.__dict__
@@ -313,7 +513,29 @@ class StaticCommandRunner:
         func: Callable,
         kwargs: dict[str, Any],
     ) -> OBBject:
-        """Execute a function and return the output."""
+        """执行函数并返回输出
+
+        执行完整的命令处理流程，包括参数构建、命令执行、
+        图表生成、警告处理和日志记录。
+
+        Parameters
+        ----------
+        route : str
+            路由路径
+        args : tuple[Any, ...]
+            位置参数
+        execution_context : ExecutionContext
+            执行上下文
+        func : Callable
+            命令函数
+        kwargs : dict[str, Any]
+            关键字参数
+
+        Returns
+        -------
+        OBBject
+            命令执行结果
+        """
         user_settings = execution_context.user_settings
         system_settings = execution_context.system_settings
         raised_warnings: list = []
@@ -435,7 +657,30 @@ class StaticCommandRunner:
         *args,
         **kwargs,
     ) -> OBBject:
-        """Run a command and return the OBBject as output."""
+        """运行命令并返回 OBBject
+
+        这是 StaticCommandRunner 的主入口方法，执行完整的命令流程
+        并添加元数据。
+
+        Parameters
+        ----------
+        execution_context : ExecutionContext
+            执行上下文
+        *args
+            位置参数
+        **kwargs
+            关键字参数
+
+        Returns
+        -------
+        OBBject
+            命令执行结果
+
+        Raises
+        ------
+        AttributeError
+            如果路由无效
+        """
         timestamp = datetime.now()
         start_ns = perf_counter_ns()
 
@@ -536,7 +781,17 @@ class StaticCommandRunner:
 
     @classmethod
     def _trigger_command_output_callbacks(cls, route: str, obbject: OBBject) -> None:
-        """Trigger command output callbacks for extensions."""
+        """触发扩展的命令输出回调
+
+        遍历所有注册了输出回调的扩展，调用它们的访问器方法。
+
+        Parameters
+        ----------
+        route : str
+            命令路由路径
+        obbject : OBBject
+            命令输出对象
+        """
         loader = ExtensionLoader()
         callbacks = loader.on_command_output_callbacks
         if not callbacks:
@@ -640,7 +895,25 @@ class StaticCommandRunner:
 
 
 class CommandRunner:
-    """Command runner."""
+    """命令运行器
+
+    提供高级接口用于执行 OpenBB 命令。
+
+    CommandRunner 封装了命令执行的完整流程，包括：
+    - 命令映射管理
+    - 系统和用户设置管理
+    - 日志服务初始化
+    - 同步和异步执行支持
+
+    Attributes
+    ----------
+    command_map : CommandMap
+        命令映射实例
+    system_settings : SystemSettings
+        系统设置
+    user_settings : UserSettings
+        用户设置
+    """
 
     def __init__(
         self,
@@ -648,7 +921,17 @@ class CommandRunner:
         system_settings: Optional["SystemSettings"] = None,
         user_settings: Optional["UserSettings"] = None,
     ) -> None:
-        """Initialize the command runner."""
+        """初始化命令运行器
+
+        Parameters
+        ----------
+        command_map : CommandMap | None, optional
+            命令映射实例，默认创建新实例
+        system_settings : SystemSettings | None, optional
+            系统设置，默认从 SystemService 获取
+        user_settings : UserSettings | None, optional
+            用户设置，默认从文件读取
+        """
         # pylint: disable=import-outside-toplevel
         from openbb_core.app.router import CommandMap
         from openbb_core.app.service.system_service import SystemService
@@ -659,7 +942,7 @@ class CommandRunner:
         self._user_settings = user_settings or UserService.read_from_file()
 
     def init_logging_service(self) -> None:
-        """Initialize the logging service."""
+        """初始化日志服务"""
         # pylint: disable=import-outside-toplevel
         from openbb_core.app.logs.logging_service import LoggingService
 
@@ -669,21 +952,22 @@ class CommandRunner:
 
     @property
     def command_map(self) -> "CommandMap":
-        """Command map."""
+        """获取命令映射"""
         return self._command_map
 
     @property
     def system_settings(self) -> "SystemSettings":
-        """System settings."""
+        """获取系统设置"""
         return self._system_settings
 
     @property
     def user_settings(self) -> "UserSettings":
-        """User settings."""
+        """获取用户设置"""
         return self._user_settings
 
     @user_settings.setter
     def user_settings(self, user_settings: "UserSettings") -> None:
+        """设置用户设置"""
         self._user_settings = user_settings
 
     # pylint: disable=W1113
@@ -695,7 +979,24 @@ class CommandRunner:
         *args,
         **kwargs,
     ) -> OBBject:
-        """Run a command and return the OBBject as output."""
+        """异步运行命令
+
+        Parameters
+        ----------
+        route : str
+            命令路由路径
+        user_settings : UserSettings | None, optional
+            用户设置覆盖，默认使用实例设置
+        *args
+            位置参数
+        **kwargs
+            关键字参数
+
+        Returns
+        -------
+        OBBject
+            命令执行结果
+        """
         # pylint: disable=import-outside-toplevel
 
         self._user_settings = user_settings or self._user_settings
@@ -718,5 +1019,22 @@ class CommandRunner:
         *args,
         **kwargs,
     ) -> OBBject:
-        """Run a command and return the OBBject as output."""
+        """同步运行命令
+
+        Parameters
+        ----------
+        route : str
+            命令路由路径
+        user_settings : UserSettings | None, optional
+            用户设置覆盖，默认使用实例设置
+        *args
+            位置参数
+        **kwargs
+            关键字参数
+
+        Returns
+        -------
+        OBBject
+            命令执行结果
+        """
         return run_async(self.run, route, user_settings, *args, **kwargs)

@@ -1,5 +1,9 @@
-"""Common descriptions for model fields."""
+"""模型字段通用描述
 
+本模块定义了查询参数和数据字段的标准描述文本。
+"""
+
+# 查询参数描述
 QUERY_DESCRIPTIONS = {
     "symbol": "Symbol to get data for.",
     "start_date": "Start date of the data, in YYYY-MM-DD format.",
@@ -14,6 +18,7 @@ QUERY_DESCRIPTIONS = {
     "frequency": "The frequency of the data.",
 }
 
+# 数据字段描述
 DATA_DESCRIPTIONS = {
     "symbol": "Symbol representing the entity requested in the data.",
     "cik": "Central Index Key (CIK) for the requested entity.",

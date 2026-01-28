@@ -1,4 +1,8 @@
-"""Intrinio Provider Modules."""
+"""Intrinio 数据提供者模块
+
+Intrinio 金融数据 API 集成。
+提供股票、期权、财务报表等专业金融数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_intrinio.models.balance_sheet import IntrinioBalanceSheetFetcher

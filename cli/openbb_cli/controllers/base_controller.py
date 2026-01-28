@@ -1,4 +1,7 @@
-"""Base controller for the CLI."""
+"""CLI 基础控制器模块
+
+定义所有 CLI 控制器的基类，提供通用命令和菜单导航功能。
+"""
 
 import argparse
 import difflib
@@ -45,7 +48,10 @@ SESSION_RECORDED_PUBLIC = False
 
 
 class BaseController(metaclass=ABCMeta):
-    """Base class for a cli controller."""
+    """CLI 控制器基类。
+
+    提供菜单导航、命令解析和会话录制等核心功能。
+    """
 
     CHOICES_COMMON = [
         "cls",
@@ -75,7 +81,7 @@ class BaseController(metaclass=ABCMeta):
 
     @property
     def choices_default(self):
-        """Return the default choices."""
+        """返回默认选项。"""
         choices = (
             build_controller_choice_map(controller=self)
             if self.CHOICES_GENERATION
@@ -117,12 +123,12 @@ class BaseController(metaclass=ABCMeta):
         self.parser.add_argument("cmd", choices=self.controller_choices)
 
     def update_completer(self, choices) -> None:
-        """Update the completer with new choices."""
+        """使用新选项更新自动补全器。"""
         if session.prompt_session and session.settings.USE_PROMPT_TOOLKIT:
             self.completer = NestedCompleter.from_nested_dict(choices)
 
     def check_path(self) -> None:
-        """Check if command path is valid."""
+        """检查命令路径是否有效。"""
         path = self.PATH
         if path[0] != "/":
             raise ValueError("Path must begin with a '/' character.")
@@ -134,7 +140,7 @@ class BaseController(metaclass=ABCMeta):
             )
 
     def load_class(self, class_ins, *args, **kwargs):
-        """Check for an existing instance of the controller before creating a new one."""
+        """创建新实例前检查是否存在现有控制器实例。"""
         self.save_class()
         arguments = len(args) + len(kwargs)
 
@@ -145,23 +151,23 @@ class BaseController(metaclass=ABCMeta):
         return class_ins(*args, **kwargs).menu()
 
     def save_class(self) -> None:
-        """Save the current instance of the class to be loaded later."""
+        """保存当前类实例以便稍后加载。"""
         controllers[self.PATH] = self
 
     def custom_reset(self) -> list[str]:
-        """Implement custom reset.
+        """实现自定义重置。
 
-        This will be replaced by any children with custom_reset functions.
+        子类可覆盖此方法以实现自定义重置逻辑。
         """
         return []
 
     @abstractmethod
     def print_help(self) -> None:
-        """Print help placeholder."""
+        """打印帮助信息占位符。"""
         raise NotImplementedError("Must override print_help.")
 
     def parse_input(self, an_input: str) -> list:
-        """Parse controller input."""
+        """解析控制器输入。"""
         # The original regex has been improved to handle quoted strings.
         # It now splits by '/' only when it's not enclosed in single or double quotes.
         # This allows commands like: exe --file "folder with spaces/file.openbb"
@@ -239,11 +245,11 @@ class BaseController(metaclass=ABCMeta):
         return self.queue
 
     def call_cls(self, _) -> None:
-        """Process cls command."""
+        """处理 cls 命令。"""
         system_clear()
 
     def call_home(self, _) -> None:
-        """Process home command."""
+        """处理 home 命令。"""
         self.save_class()
         if self.PATH.count("/") == 1 and session.settings.ENABLE_EXIT_AUTO_HELP:
             self.print_help()
@@ -251,17 +257,16 @@ class BaseController(metaclass=ABCMeta):
             self.queue.insert(0, "quit")
 
     def call_help(self, _) -> None:
-        """Process help command."""
+        """处理 help 命令。"""
         self.print_help()
 
     def call_quit(self, _) -> None:
-        """Process quit menu command."""
+        """处理 quit 菜单命令。"""
         self.save_class()
         self.queue.insert(0, "quit")
 
     def call_exit(self, _) -> None:
-        # Not sure how to handle controller loading here
-        """Process exit cli command."""
+        """处理 exit CLI 命令。"""
         self.save_class()
         for _ in range(self.PATH.count("/")):
             self.queue.insert(0, "quit")
@@ -284,7 +289,7 @@ class BaseController(metaclass=ABCMeta):
                 self.queue.insert(0, "quit")
 
     def call_record(self, other_args) -> None:
-        """Process record command."""
+        """处理 record 命令。"""
         parser = argparse.ArgumentParser(
             add_help=False,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -424,7 +429,7 @@ class BaseController(metaclass=ABCMeta):
             )
 
     def call_stop(self, other_args) -> None:
-        """Process stop command."""
+        """处理 stop 命令。"""
         parser = argparse.ArgumentParser(
             add_help=False,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -507,7 +512,7 @@ class BaseController(metaclass=ABCMeta):
                 SESSION_RECORDED = list()
 
     def call_results(self, other_args: list[str]):
-        """Process results command."""
+        """处理 results 命令。"""
         parser = argparse.ArgumentParser(
             add_help=False,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -802,7 +807,7 @@ class BaseController(metaclass=ABCMeta):
         return ns_parser
 
     def menu(self, custom_path_menu_above: str = ""):
-        """Enter controller menu."""
+        """进入控制器菜单。"""
         settings = session.settings
         an_input = "HELP_ME"
 

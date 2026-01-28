@@ -1,4 +1,7 @@
-"""User service."""
+"""用户服务模块
+
+本模块提供用户设置的读写和管理功能。
+"""
 
 import json
 from collections.abc import MutableMapping
@@ -12,7 +15,19 @@ from openbb_core.app.model.user_settings import UserSettings
 
 
 class UserService(metaclass=SingletonMeta):
-    """User service."""
+    """用户服务
+
+    管理用户设置的读取、写入和合并。
+
+    Attributes
+    ----------
+    USER_SETTINGS_PATH : Path
+        用户设置文件路径
+    USER_SETTINGS_ALLOWED_FIELD_SET : set
+        允许持久化的字段集合
+    default_user_settings : UserSettings
+        默认用户设置
+    """
 
     USER_SETTINGS_PATH = USER_SETTINGS_PATH
     USER_SETTINGS_ALLOWED_FIELD_SET = {"credentials", "preferences", "defaults"}
@@ -21,12 +36,29 @@ class UserService(metaclass=SingletonMeta):
         self,
         default_user_settings: UserSettings | None = None,
     ):
-        """Initialize user service."""
+        """初始化用户服务
+
+        Parameters
+        ----------
+        default_user_settings : UserSettings | None, optional
+            默认用户设置，默认从文件读取
+        """
         self._default_user_settings = default_user_settings or self.read_from_file()
 
     @classmethod
     def read_from_file(cls, path: Path | None = None) -> UserSettings:
-        """Read user settings from json into UserSettings."""
+        """从 JSON 文件读取用户设置
+
+        Parameters
+        ----------
+        path : Path | None, optional
+            文件路径，默认使用 USER_SETTINGS_PATH
+
+        Returns
+        -------
+        UserSettings
+            用户设置对象
+        """
         path = path or cls.USER_SETTINGS_PATH
 
         return (
@@ -41,7 +73,15 @@ class UserService(metaclass=SingletonMeta):
         user_settings: UserSettings,
         path: Path | None = None,
     ) -> None:
-        """Write user settings to json."""
+        """将用户设置写入 JSON 文件
+
+        Parameters
+        ----------
+        user_settings : UserSettings
+            要写入的用户设置
+        path : Path | None, optional
+            文件路径，默认使用 USER_SETTINGS_PATH
+        """
         path = path or cls.USER_SETTINGS_PATH
         user_settings_json = user_settings.model_dump_json(
             indent=4, include=cls.USER_SETTINGS_ALLOWED_FIELD_SET, exclude_defaults=True
@@ -50,10 +90,21 @@ class UserService(metaclass=SingletonMeta):
 
     @staticmethod
     def _merge_dicts(list_of_dicts: list[dict[str, Any]]) -> dict[str, Any]:
-        """Merge a list of dictionaries."""
+        """合并字典列表
+
+        Parameters
+        ----------
+        list_of_dicts : list[dict[str, Any]]
+            要合并的字典列表
+
+        Returns
+        -------
+        dict[str, Any]
+            合并后的字典
+        """
 
         def recursive_merge(d1: dict, d2: dict) -> dict:
-            """Recursively merge dict d2 into dict d1 if d2 is value is not None."""
+            """递归合并字典，如果 d2 的值不为 None 则合并到 d1"""
             for k, v in d1.items():
                 if k in d2 and all(isinstance(e, MutableMapping) for e in (v, d2[k])):
                     d2[k] = recursive_merge(v, d2[k])
@@ -69,10 +120,10 @@ class UserService(metaclass=SingletonMeta):
 
     @property
     def default_user_settings(self) -> UserSettings:
-        """Return default user settings."""
+        """获取默认用户设置"""
         return self._default_user_settings
 
     @default_user_settings.setter
     def default_user_settings(self, default_user_settings: UserSettings) -> None:
-        """Set default user settings."""
+        """设置默认用户设置"""
         self._default_user_settings = default_user_settings

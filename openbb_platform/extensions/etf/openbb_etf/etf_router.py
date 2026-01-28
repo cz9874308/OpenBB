@@ -1,4 +1,7 @@
-"""ETF Router."""
+"""ETF 路由模块
+
+定义 ETF 相关的 API 端点和命令。
+"""
 
 from openbb_core.app.model.command_context import CommandContext
 from openbb_core.app.model.example import APIEx, PythonEx

@@ -1,4 +1,8 @@
-"""Congress.gov Provider Module."""
+"""Congress.gov 数据提供者模块
+
+美国国会法案数据集成。
+提供法案搜索、法案详情、法案文本等立法数据。
+"""
 
 from openbb_congress_gov.models.bill_info import CongressBillInfoFetcher
 from openbb_congress_gov.models.bill_text import CongressBillTextFetcher

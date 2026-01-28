@@ -1,4 +1,8 @@
-"""FRED provider module."""
+"""FRED 数据提供者模块
+
+美联储经济数据 (FRED) API 集成。
+提供宏观经济、利率、货币供应等经济数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_fred.models.ameribor import FredAmeriborFetcher

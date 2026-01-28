@@ -1,4 +1,8 @@
-"""OECD provider module."""
+"""OECD 数据提供者模块
+
+经济合作与发展组织 (OECD) 数据集成。
+提供 GDP、CPI、失业率等宏观经济数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_oecd.models.composite_leading_indicator import (

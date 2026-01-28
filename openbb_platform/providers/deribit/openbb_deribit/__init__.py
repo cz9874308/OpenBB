@@ -1,4 +1,8 @@
-"""OpenBB Deribit Provider Module."""
+"""Deribit 数据提供者模块
+
+Deribit 加密货币衍生品交易所数据集成。
+提供期货曲线、期权链等加密衍生品数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_deribit.models.futures_curve import DeribitFuturesCurveFetcher

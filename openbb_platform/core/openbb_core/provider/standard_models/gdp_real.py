@@ -1,4 +1,7 @@
-"""Real GDP Standard Model."""
+"""实际 GDP 标准模型
+
+本模块定义了实际 GDP 查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -12,7 +15,15 @@ from pydantic import Field
 
 
 class GdpRealQueryParams(QueryParams):
-    """Real GDP Query."""
+    """实际 GDP 查询参数
+
+    Attributes
+    ----------
+    start_date : date | None
+        开始日期
+    end_date : date | None
+        结束日期
+    """
 
     start_date: dateType | None = Field(
         default=None, description=QUERY_DESCRIPTIONS.get("start_date")
@@ -23,7 +34,10 @@ class GdpRealQueryParams(QueryParams):
 
 
 class GdpRealData(Data):
-    """Real GDP Data."""
+    """实际 GDP 数据
+
+    包含各国的实际 GDP 值。
+    """
 
     date: dateType = Field(description=DATA_DESCRIPTIONS.get("date"))
     country: str = Field(

@@ -1,4 +1,34 @@
-"""Provider Interface."""
+"""数据提供者接口模块
+
+本模块定义了 ProviderInterface 类，作为 OpenBB 数据提供者的统一接口层。
+
+核心概念
+--------
+
+ProviderInterface 是连接路由系统和数据提供者的桥梁：
+
+1. **参数标准化**: 将各提供者的参数统一为 StandardParams 和 ExtraParams
+2. **数据标准化**: 将各提供者的数据统一为 StandardData 和 ExtraData
+3. **动态类型生成**: 为 FastAPI 依赖注入动态生成 dataclass 和 Pydantic 模型
+4. **查询执行**: 通过 QueryExecutor 执行实际的数据查询
+
+架构概览
+--------
+
+```
+用户请求
+    ↓
+ProviderChoices (选择提供者)
+    ↓
+StandardParams + ExtraParams (参数)
+    ↓
+QueryExecutor.execute()
+    ↓
+StandardData + ExtraData (数据)
+    ↓
+OBBject (响应)
+```
+"""
 
 from collections.abc import Callable
 from dataclasses import dataclass, make_dataclass
@@ -30,12 +60,25 @@ from pydantic import (
 )
 from pydantic.fields import FieldInfo
 
+# 字段类型元组：(名称, 类型注解, 默认值)
 TupleFieldType = tuple[str, type | None, Any | None]
 
 
 @dataclass
 class DataclassField:
-    """Dataclass field."""
+    """数据类字段
+
+    用于构建动态 dataclass 的字段信息。
+
+    Attributes
+    ----------
+    name : str
+        字段名称
+    annotation : type | None
+        类型注解
+    default : Any | None
+        默认值
+    """
 
     name: str
     annotation: type | None
@@ -44,55 +87,86 @@ class DataclassField:
 
 @dataclass
 class StandardParams:
-    """Standard params dataclass."""
+    """标准参数数据类
+
+    所有标准查询参数 dataclass 的基类。
+    标准参数是跨提供者通用的参数。
+    """
 
 
 @dataclass
 class ExtraParams:
-    """Extra params dataclass."""
+    """扩展参数数据类
+
+    所有扩展查询参数 dataclass 的基类。
+    扩展参数是特定提供者独有的参数。
+    """
 
 
 class StandardData(BaseModel):
-    """Standard data model."""
+    """标准数据模型
+
+    所有标准数据模型的基类。
+    标准数据字段是跨提供者通用的字段。
+    """
 
 
 class ExtraData(BaseModel):
-    """Extra data model."""
+    """扩展数据模型
+
+    所有扩展数据模型的基类。
+    扩展数据字段是特定提供者独有的字段。
+    """
 
 
 @dataclass
 class ProviderChoices:
-    """Provider choices dataclass."""
+    """提供者选择数据类
+
+    用于 FastAPI 依赖注入的提供者选择。
+
+    Attributes
+    ----------
+    provider : Literal
+        可选的提供者名称字面量类型
+    """
 
     provider: Literal  # type: ignore
 
 
 class ProviderInterface(metaclass=SingletonMeta):
-    """Provider interface class.
+    """数据提供者接口类
 
-    Properties
+    作为单例模式实现，提供统一的接口访问所有已注册的数据提供者。
+
+    ProviderInterface 负责：
+    - 管理提供者注册表映射
+    - 为每个数据模型生成参数和数据的 dataclass
+    - 创建查询执行器
+    - 生成 FastAPI 依赖注入所需的类型
+
+    Attributes
     ----------
     map : MapType
-        Dictionary of provider information.
-    credentials: List[str]
-        List of credentials.
-    model_providers : Dict[str, ProviderChoices]
-        Dictionary of provider choices by model.
-    params : Dict[str, Dict[str, Union[StandardParams, ExtraParams]]]
-        Dictionary of params by model.
-    return_schema : Dict[str, Type[BaseModel]]
-        Dictionary of return data schema by model.
-    available_providers : List[str]
-        List of available providers.
-    provider_choices : ProviderChoices
-        Dataclass with literal of provider names.
-    models : List[str]
-        List of model names.
-
-    Methods
-    -------
-    create_executor : QueryExecutor
-        Create a query executor
+        提供者信息字典
+    credentials : dict[str, list[str]]
+        提供者到凭证的映射
+    model_providers : dict[str, ProviderChoices]
+        模型到提供者选择的映射
+    params : dict[str, dict[str, StandardParams | ExtraParams]]
+        模型到参数的映射
+    data : dict[str, dict[str, StandardData | ExtraData]]
+        模型到数据的映射
+    return_schema : dict[str, type[BaseModel]]
+        模型到返回 schema 的映射
+    available_providers : list[str]
+        可用提供者列表
+    provider_choices : type
+        提供者名称字面量的 dataclass
+    models : list[str]
+        模型名称列表
+    return_annotations : dict[str, type[OBBject]]
+        返回类型注解映射
     """
 
     def __init__(
@@ -100,7 +174,15 @@ class ProviderInterface(metaclass=SingletonMeta):
         registry_map: RegistryMap | None = None,
         query_executor: QueryExecutor | None = None,
     ) -> None:
-        """Initialize provider interface."""
+        """初始化提供者接口
+
+        Parameters
+        ----------
+        registry_map : RegistryMap | None, optional
+            注册表映射，默认创建新实例
+        query_executor : QueryExecutor | None, optional
+            查询执行器类，默认使用 QueryExecutor
+        """
         self._registry_map = registry_map or RegistryMap()
         self._query_executor = query_executor or QueryExecutor
 
@@ -119,63 +201,86 @@ class ProviderInterface(metaclass=SingletonMeta):
 
     @property
     def map(self) -> MapType:
-        """Dictionary of provider information."""
+        """获取提供者信息字典"""
         return self._map
 
     @property
     def credentials(self) -> dict[str, list[str]]:
-        """Map providers to credentials."""
+        """获取提供者到凭证的映射"""
         return self._registry_map.credentials
 
     @property
     def model_providers(self) -> dict[str, ProviderChoices]:
-        """Dictionary of provider choices by model."""
+        """获取模型到提供者选择的映射"""
         return self._model_providers_map
 
     @property
     def params(self) -> dict[str, dict[str, StandardParams | ExtraParams]]:
-        """Dictionary of params by model."""
+        """获取模型到参数的映射"""
         return self._params
 
     @property
     def data(self) -> dict[str, dict[str, StandardData | ExtraData]]:
-        """Dictionary of data by model."""
+        """获取模型到数据的映射"""
         return self._data
 
     @property
     def return_schema(self) -> dict[str, type[BaseModel]]:
-        """Dictionary of data by model merged."""
+        """获取合并后的数据 schema 字典"""
         return self._return_schema
 
     @property
     def available_providers(self) -> list[str]:
-        """List of available providers."""
+        """获取可用提供者列表"""
         return self._available_providers
 
     @property
     def provider_choices(self) -> type:
-        """Dataclass with literal of provider names."""
+        """获取提供者名称字面量的 dataclass"""
         return self._provider_choices
 
     @property
     def models(self) -> list[str]:
-        """List of model names."""
+        """获取模型名称列表"""
         return self._registry_map.models
 
     @property
     def return_annotations(self) -> dict[str, type[OBBject]]:
-        """Return map."""
+        """获取返回类型注解映射"""
         return self._return_annotations
 
     def create_executor(self) -> QueryExecutor:
-        """Get query executor."""
+        """创建查询执行器
+
+        Returns
+        -------
+        QueryExecutor
+            查询执行器实例
+        """
         return self._query_executor(self._registry_map.registry)  # type: ignore[operator]
 
     @staticmethod
     def _merge_fields(
         current: DataclassField, incoming: DataclassField, query: bool = False
     ) -> DataclassField:
-        """Merge 2 dataclass fields."""
+        """合并两个 dataclass 字段
+
+        当多个提供者定义相同字段时，合并它们的描述和类型。
+
+        Parameters
+        ----------
+        current : DataclassField
+            当前字段
+        incoming : DataclassField
+            要合并的字段
+        query : bool, optional
+            是否为查询参数，默认为 False
+
+        Returns
+        -------
+        DataclassField
+            合并后的字段
+        """
         curr_name = current.name
         curr_type: type | None = current.annotation
         curr_desc = getattr(current.default, "description", "")
@@ -186,7 +291,7 @@ class ProviderInterface(metaclass=SingletonMeta):
         inc_json_schema_extra = getattr(incoming.default, "json_schema_extra", {})
 
         def split_desc(desc: str) -> str:
-            """Split field description, removing provider tags and multiple items text."""
+            """分割字段描述，移除提供者标签和多项文本"""
             item = desc.split(" (provider: ")
             detail = item[0] if item else ""
             # Also remove "Multiple comma separated items allowed." for comparison
@@ -195,7 +300,7 @@ class ProviderInterface(metaclass=SingletonMeta):
             return detail.strip()
 
         def merge_json_schema_extra(curr: dict, inc: dict) -> dict:
-            """Merge json schema extra."""
+            """合并 JSON schema extra 属性"""
             for key in curr.keys() & inc.keys():
                 # Merge keys that are in both dictionaries if both are lists
                 curr_value = curr[key]
@@ -353,7 +458,20 @@ class ProviderInterface(metaclass=SingletonMeta):
         cls,
         providers: Any,
     ) -> tuple[dict[str, TupleFieldType], dict[str, TupleFieldType]]:
-        """Extract parameters from map."""
+        """从映射中提取参数
+
+        将提供者的参数分离为标准参数和扩展参数。
+
+        Parameters
+        ----------
+        providers : Any
+            提供者信息字典
+
+        Returns
+        -------
+        tuple[dict[str, TupleFieldType], dict[str, TupleFieldType]]
+            标准参数字典和扩展参数字典的元组
+        """
         standard: dict[str, TupleFieldType] = {}
         extra: dict[str, TupleFieldType] = {}
         standard_fields = (
@@ -429,6 +547,20 @@ class ProviderInterface(metaclass=SingletonMeta):
         cls,
         providers: Any,
     ) -> tuple[dict[str, TupleFieldType], dict[str, TupleFieldType]]:
+        """从映射中提取数据字段
+
+        将提供者的数据字段分离为标准字段和扩展字段。
+
+        Parameters
+        ----------
+        providers : Any
+            提供者信息字典
+
+        Returns
+        -------
+        tuple[dict[str, TupleFieldType], dict[str, TupleFieldType]]
+            标准数据字段字典和扩展数据字段字典的元组
+        """
         standard: dict[str, TupleFieldType] = {}
         extra: dict[str, TupleFieldType] = {}
 
@@ -479,13 +611,14 @@ class ProviderInterface(metaclass=SingletonMeta):
     def _generate_params_dc(
         self, map_: MapType
     ) -> dict[str, dict[str, StandardParams | ExtraParams]]:
-        """Generate dataclasses for params.
+        """生成参数 dataclass
 
-        This creates a dictionary of dataclasses that can be injected as a FastAPI
-        dependency.
+        创建可作为 FastAPI 依赖注入的 dataclass 字典。
 
-        Example
-        -------
+        示例
+        ----
+
+        ```python
         @dataclass
         class CompanyNews(StandardParams):
             symbols: str = Query(...)
@@ -495,8 +628,18 @@ class ProviderInterface(metaclass=SingletonMeta):
         class CompanyNews(ExtraParams):
             pageSize: int = Query(default=15, title="benzinga")
             displayOutput: int = Query(default="headline", title="benzinga")
-            ...
             sort: str = Query(default=None, title="benzinga,polygon")
+        ```
+
+        Parameters
+        ----------
+        map_ : MapType
+            提供者映射
+
+        Returns
+        -------
+        dict[str, dict[str, StandardParams | ExtraParams]]
+            模型名称到参数 dataclass 的映射
         """
         result: dict = {}
 
@@ -520,16 +663,28 @@ class ProviderInterface(metaclass=SingletonMeta):
         return result
 
     def _generate_model_providers_dc(self, map_: MapType) -> dict[str, ProviderChoices]:
-        """Generate dataclasses for provider choices by model.
+        """生成按模型的提供者选择 dataclass
 
-        This creates a dictionary that maps model names to dataclasses that can be
-        injected as a FastAPI dependency.
+        创建模型名称到 dataclass 的映射，可作为 FastAPI 依赖注入。
 
-        Example
-        -------
+        示例
+        ----
+
+        ```python
         @dataclass
         class CompanyNews(ProviderChoices):
             provider: Literal["provider_a", "provider_b"]
+        ```
+
+        Parameters
+        ----------
+        map_ : MapType
+            提供者映射
+
+        Returns
+        -------
+        dict[str, ProviderChoices]
+            模型名称到提供者选择 dataclass 的映射
         """
         result: dict = {}
 
@@ -555,12 +710,14 @@ class ProviderInterface(metaclass=SingletonMeta):
     def _generate_data_dc(
         self, map_: MapType
     ) -> dict[str, dict[str, StandardData | ExtraData]]:
-        """Generate dataclasses for data.
+        """生成数据 dataclass
 
-        This creates a dictionary of dataclasses.
+        创建数据模型的 dataclass 字典。
 
-        Example
-        -------
+        示例
+        ----
+
+        ```python
         class EquityHistoricalData(StandardData):
             date: date
             open: PositiveFloat
@@ -569,6 +726,17 @@ class ProviderInterface(metaclass=SingletonMeta):
             close: PositiveFloat
             adj_close: Optional[PositiveFloat]
             volume: PositiveFloat
+        ```
+
+        Parameters
+        ----------
+        map_ : MapType
+            提供者映射
+
+        Returns
+        -------
+        dict[str, dict[str, StandardData | ExtraData]]
+            模型名称到数据 dataclass 的映射
         """
         result: dict = {}
 
@@ -595,7 +763,21 @@ class ProviderInterface(metaclass=SingletonMeta):
         self,
         data: dict[str, dict[str, StandardData | ExtraData]],
     ) -> dict[str, type[BaseModel]]:
-        """Merge standard data with extra data into a single BaseModel to be injected as FastAPI dependency."""
+        """生成返回 schema
+
+        将标准数据和扩展数据合并为单个 BaseModel，
+        作为 FastAPI 依赖注入使用。
+
+        Parameters
+        ----------
+        data : dict[str, dict[str, StandardData | ExtraData]]
+            数据 dataclass 字典
+
+        Returns
+        -------
+        dict[str, type[BaseModel]]
+            模型名称到 Pydantic 模型的映射
+        """
         result: dict = {}
         for model_name, dataclasses in data.items():
             standard = dataclasses["standard"]
@@ -636,10 +818,23 @@ class ProviderInterface(metaclass=SingletonMeta):
         )
 
     def _get_annotated_union(self, models: dict[str, Any]) -> Any:
-        """Get annotated union."""
+        """获取带注解的 Union 类型
+
+        为多个提供者的数据模型创建带区分器的 Union 类型。
+
+        Parameters
+        ----------
+        models : dict[str, Any]
+            提供者到模型的映射
+
+        Returns
+        -------
+        Any
+            带 Discriminator 注解的 Union 类型
+        """
 
         def get_provider(v: type[BaseModel]):
-            """Callable to discriminate which BaseModel to use."""
+            """获取模型的提供者名称，用于类型区分"""
             return getattr(v, "_provider", None)
 
         args = set()
@@ -659,10 +854,14 @@ class ProviderInterface(metaclass=SingletonMeta):
     def _generate_return_annotations(
         self, original_models: dict[str, dict[str, Any]]
     ) -> dict[str, type[OBBject]]:
-        """Generate return annotations for FastAPI.
+        """生成 FastAPI 返回类型注解
 
-        Example
-        -------
+        为每个数据模型生成带有提供者区分的 OBBject 类型。
+
+        示例
+        ----
+
+        ```python
         class Data(BaseModel):
             ...
 
@@ -687,6 +886,17 @@ class ProviderInterface(metaclass=SingletonMeta):
                     ]
                 ]
             ]
+        ```
+
+        Parameters
+        ----------
+        original_models : dict[str, dict[str, Any]]
+            原始模型字典
+
+        Returns
+        -------
+        dict[str, type[OBBject]]
+            模型名称到 OBBject 类型的映射
         """
         annotations = {}
         for name, models in original_models.items():

@@ -1,4 +1,7 @@
-"""OpenBB Platform CLI entry point."""
+"""OpenBB Platform CLI 入口模块
+
+命令行界面的主入口点，负责启动和配置 CLI。
+"""
 
 import logging
 import sys
@@ -7,7 +10,7 @@ from openbb_cli.utils.utils import change_logging_sub_app, reset_logging_sub_app
 
 
 def main():
-    """Use the main entry point for the OpenBB Platform CLI."""
+    """OpenBB Platform CLI 主入口函数。"""
     print("Loading...\n")  # noqa: T201
 
     # pylint: disable=import-outside-toplevel

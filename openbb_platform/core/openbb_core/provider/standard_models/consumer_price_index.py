@@ -1,4 +1,7 @@
-"""CPI Standard Model."""
+"""消费者价格指数 (CPI) 标准模型
+
+本模块定义了 CPI 查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 from typing import Literal
@@ -13,7 +16,23 @@ from pydantic import Field
 
 
 class ConsumerPriceIndexQueryParams(QueryParams):
-    """CPI Query."""
+    """CPI 查询参数
+
+    Attributes
+    ----------
+    country : str
+        国家
+    transform : str
+        数据转换方式
+    frequency : Literal["annual", "quarter", "monthly"]
+        数据频率
+    harmonized : bool
+        是否返回调和数据
+    start_date : date | None
+        开始日期
+    end_date : date | None
+        结束日期
+    """
 
     country: str = Field(
         description=QUERY_DESCRIPTIONS.get("country"),
@@ -39,7 +58,10 @@ class ConsumerPriceIndexQueryParams(QueryParams):
 
 
 class ConsumerPriceIndexData(Data):
-    """CPI data."""
+    """CPI 数据
+
+    包含消费者价格指数值。
+    """
 
     date: dateType = Field(description=DATA_DESCRIPTIONS.get("date"))
     country: str = Field(description=DATA_DESCRIPTIONS.get("country"))

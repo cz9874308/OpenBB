@@ -1,4 +1,8 @@
-"""Tradier Provider Module."""
+"""Tradier 数据提供者模块
+
+Tradier 经纪商 API 集成。
+提供股票报价、历史数据、期权链等交易数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_tradier.models.equity_historical import TradierEquityHistoricalFetcher

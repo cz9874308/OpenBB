@@ -37,6 +37,314 @@ Data integrations available can be found here: <https://docs.openbb.co/python/re
 
 ---
 
+## 📚 新手教程 / Tutorial
+
+如果你是 OpenBB 新手，推荐从我们的中文教程开始学习：
+
+**[📖 OpenBB 新手教程](./docs/tutorial/README.md)** - 从零开始，9 节课程带你掌握 OpenBB
+
+| 课程 | 内容 | 难度 |
+|------|------|------|
+| 第 1-3 课 | 入门：认识 OpenBB、安装配置、第一个程序 | ⭐ |
+| 第 4-6 课 | 基础：核心概念、数据获取、数据处理 | ⭐⭐ |
+| 第 7-9 课 | 进阶：REST API、扩展开发、实战项目 | ⭐⭐⭐ |
+
+---
+
+## Architecture Overview
+
+<details>
+<summary><b>Click to expand Architecture Diagrams</b></summary>
+
+### High-Level System Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                              OPENBB PLATFORM v4.6                                │
+│                     "Connect Once, Consume Everywhere"                           │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                            PRESENTATION LAYER                                    │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │  REST API   │  │ Python SDK  │  │     CLI     │  │    Desktop App          │  │
+│  │  (FastAPI)  │  │ from openbb │  │ openbb-cli  │  │    (Tauri+React)        │  │
+│  │  Port:6900  │  │   import    │  │  terminal   │  │                         │  │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └───────────┬─────────────┘  │
+│         │                │                │                     │                │
+│         └────────────────┴────────────────┴─────────────────────┘                │
+│                                    │                                             │
+└────────────────────────────────────┼─────────────────────────────────────────────┘
+                                     ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                           APPLICATION LAYER                                      │
+│  ┌────────────────────────────────────────────────────────────────────────────┐  │
+│  │                            ROUTER SYSTEM                                   │  │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐         │  │
+│  │  │  equity  │ │  crypto  │ │ currency │ │ economy  │ │   etf    │  ...    │  │
+│  │  │  /price  │ │  /price  │ │  /price  │ │  /gdp    │ │ /search  │         │  │
+│  │  │  /quote  │ │  /search │ │  /pairs  │ │ /calendar│ │ /holdings│         │  │
+│  │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘         │  │
+│  │       └────────────┴────────────┴────────────┴────────────┘               │  │
+│  └────────────────────────────────────┬───────────────────────────────────────┘  │
+│                                       │                                          │
+│  ┌────────────────────────────────────▼───────────────────────────────────────┐  │
+│  │                     COMMAND RUNNER & QUERY EXECUTOR                        │  │
+│  │         CommandContext → ProviderChoices → StandardParams → Query          │  │
+│  └────────────────────────────────────┬───────────────────────────────────────┘  │
+└────────────────────────────────────────┼─────────────────────────────────────────┘
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                            DOMAIN LAYER                                          │
+│  ┌────────────────────────────────────────────────────────────────────────────┐  │
+│  │                      STANDARD MODELS (58+ Models)                          │  │
+│  │                                                                            │  │
+│  │   QueryParams (Input)              Data (Output)                           │  │
+│  │   ┌─────────────────────┐          ┌─────────────────────┐                 │  │
+│  │   │ • symbol: str       │          │ • date: datetime    │                 │  │
+│  │   │ • start_date: date  │  ──────▶ │ • open: float       │                 │  │
+│  │   │ • end_date: date    │          │ • high: float       │                 │  │
+│  │   │ • interval: str     │          │ • low: float        │                 │  │
+│  │   └─────────────────────┘          │ • close: float      │                 │  │
+│  │                                    │ • volume: int       │                 │  │
+│  │   Examples:                        └─────────────────────┘                 │  │
+│  │   EquityHistorical, CryptoHistorical, EconomicIndicators, ...              │  │
+│  └────────────────────────────────────┬───────────────────────────────────────┘  │
+│                                       │                                          │
+│  ┌────────────────────────────────────▼───────────────────────────────────────┐  │
+│  │                           OBBject (Response)                               │  │
+│  │  ┌──────────────────────────────────────────────────────────────────────┐  │  │
+│  │  │  results: List[Data]  │  provider: str  │  warnings  │  chart  │ ... │  │  │
+│  │  │  ──────────────────────────────────────────────────────────────────  │  │  │
+│  │  │  .to_dataframe()  │  .to_dict()  │  .to_polars()  │  .to_llm()  │ ...│  │  │
+│  │  └──────────────────────────────────────────────────────────────────────┘  │  │
+│  └────────────────────────────────────────────────────────────────────────────┘  │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                         INFRASTRUCTURE LAYER                                     │
+│  ┌────────────────────────────────────────────────────────────────────────────┐  │
+│  │                       FETCHER (TET Pattern)                                │  │
+│  │                                                                            │  │
+│  │   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │  │
+│  │   │   TRANSFORM     │    │    EXTRACT      │    │   TRANSFORM     │        │  │
+│  │   │    (Query)      │───▶│    (Data)       │───▶│    (Data)       │        │  │
+│  │   │                 │    │                 │    │                 │        │  │
+│  │   │ params → Query  │    │ API Request     │    │ raw → Standard  │        │  │
+│  │   │ Params Model    │    │ HTTP/WebSocket  │    │ Data Model      │        │  │
+│  │   └─────────────────┘    └─────────────────┘    └─────────────────┘        │  │
+│  └────────────────────────────────────────────────────────────────────────────┘  │
+│                                                                                  │
+│  ┌────────────────────────────────────────────────────────────────────────────┐  │
+│  │                        DATA PROVIDERS (30+)                                │  │
+│  │                                                                            │  │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐         │  │
+│  │  │ yfinance │ │   fmp    │ │   fred   │ │ intrinio │ │ benzinga │  ...    │  │
+│  │  │ (Yahoo)  │ │ (FMP)    │ │ (Fed)    │ │          │ │          │         │  │
+│  │  └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘ └────┬─────┘         │  │
+│  │       │            │            │            │            │               │  │
+│  └───────┼────────────┼────────────┼────────────┼────────────┼───────────────┘  │
+└──────────┼────────────┼────────────┼────────────┼────────────┼───────────────────┘
+           ▼            ▼            ▼            ▼            ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│                          EXTERNAL DATA SOURCES                                   │
+│    Yahoo Finance    FMP API    FRED API    Intrinio    Benzinga    SEC    ...    │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Diagram
+
+```
+                                    USER REQUEST
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                                                                                 │
+│    Python SDK                    REST API                    CLI               │
+│    ───────────                   ────────                    ───               │
+│    from openbb import obb        GET /api/v1/equity/...      $ openbb          │
+│    obb.equity.price.historical   POST /api/v1/...                              │
+│                                                                                 │
+└───────────────────────────────────────┬─────────────────────────────────────────┘
+                                        │
+                           ┌────────────▼────────────┐
+                           │    @router.command()    │
+                           │    Route Matching       │
+                           └────────────┬────────────┘
+                                        │
+                    ┌───────────────────┼───────────────────┐
+                    │                   │                   │
+                    ▼                   ▼                   ▼
+            ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+            │ProviderChoices│   │ StandardParams│   │  ExtraParams  │
+            │               │   │               │   │               │
+            │ fmp, yfinance │   │ symbol, dates │   │ provider-     │
+            │ intrinio, ... │   │               │   │ specific args │
+            └───────┬───────┘   └───────┬───────┘   └───────┬───────┘
+                    │                   │                   │
+                    └───────────────────┼───────────────────┘
+                                        │
+                           ┌────────────▼────────────┐
+                           │   Query(**locals())     │
+                           │   Provider Selection    │
+                           └────────────┬────────────┘
+                                        │
+                    ┌───────────────────┴───────────────────┐
+                    │              FETCHER                   │
+                    │                                       │
+                    │  ┌─────────────────────────────────┐  │
+                    │  │  1. transform_query(params)     │  │
+                    │  │     Dict → QueryParams Model    │  │
+                    │  └──────────────┬──────────────────┘  │
+                    │                 │                     │
+                    │                 ▼                     │
+                    │  ┌─────────────────────────────────┐  │
+                    │  │  2. extract_data(query, creds)  │  │
+                    │  │     HTTP Request → Raw Data     │  │
+                    │  └──────────────┬──────────────────┘  │
+                    │                 │                     │
+                    │                 ▼                     │
+                    │  ┌─────────────────────────────────┐  │
+                    │  │  3. transform_data(query, data) │  │
+                    │  │     Raw Data → Data Model       │  │
+                    │  └──────────────┬──────────────────┘  │
+                    │                 │                     │
+                    └─────────────────┼─────────────────────┘
+                                      │
+                         ┌────────────▼────────────┐
+                         │        OBBject          │
+                         │  ┌──────────────────┐   │
+                         │  │ results: [Data]  │   │
+                         │  │ provider: str    │   │
+                         │  │ warnings: []     │   │
+                         │  │ chart: Chart     │   │
+                         │  │ extra: {}        │   │
+                         │  └──────────────────┘   │
+                         └────────────┬────────────┘
+                                      │
+            ┌─────────────────────────┼─────────────────────────┐
+            │                         │                         │
+            ▼                         ▼                         ▼
+    ┌───────────────┐         ┌───────────────┐         ┌───────────────┐
+    │ .to_dataframe │         │   .to_dict    │         │    .show()    │
+    │   (pandas)    │         │   (records)   │         │   (plotly)    │
+    └───────────────┘         └───────────────┘         └───────────────┘
+```
+
+### Project Directory Structure
+
+```
+OpenBB/
+│
+├── openbb_platform/                    # 🏗️  Core Platform
+│   │
+│   ├── core/                           # 🎯 Core Infrastructure
+│   │   ├── openbb_core/
+│   │   │   ├── api/                    #    REST API (FastAPI)
+│   │   │   │   ├── rest_api.py         #    API entry point
+│   │   │   │   └── router/             #    API routes
+│   │   │   │
+│   │   │   ├── app/                    #    Application Layer
+│   │   │   │   ├── router.py           #    Router & Command decorator
+│   │   │   │   ├── query.py            #    Query executor
+│   │   │   │   ├── command_runner.py   #    Command execution
+│   │   │   │   ├── model/              #    Core models
+│   │   │   │   │   ├── obbject.py      #    OBBject response
+│   │   │   │   │   └── ...
+│   │   │   │   └── static/             #    Package builder
+│   │   │   │
+│   │   │   └── provider/               #    Provider Framework
+│   │   │       ├── abstract/           #    Base classes
+│   │   │       │   ├── fetcher.py      #    Fetcher base (TET)
+│   │   │       │   ├── provider.py     #    Provider registration
+│   │   │       │   ├── data.py         #    Data base model
+│   │   │       │   └── query_params.py #    QueryParams base
+│   │   │       │
+│   │   │       └── standard_models/    #    58+ Standard Models
+│   │   │           ├── equity_historical.py
+│   │   │           ├── crypto_historical.py
+│   │   │           └── ...
+│   │   │
+│   │   └── openbb/                     #    Package entry (from openbb)
+│   │
+│   ├── extensions/                     # 🔌 Router Extensions (16+)
+│   │   ├── equity/                     #    Equity data routes
+│   │   │   └── openbb_equity/
+│   │   │       ├── equity_router.py
+│   │   │       ├── price/price_router.py
+│   │   │       └── ...
+│   │   ├── crypto/                     #    Crypto data routes
+│   │   ├── currency/                   #    Forex data routes
+│   │   ├── economy/                    #    Economic data routes
+│   │   ├── technical/                  #    Technical analysis
+│   │   └── ...
+│   │
+│   ├── providers/                      # 📊 Data Providers (30+)
+│   │   ├── yfinance/                   #    Yahoo Finance
+│   │   │   └── openbb_yfinance/
+│   │   │       ├── __init__.py         #    Provider registration
+│   │   │       └── models/
+│   │   │           └── equity_historical.py  # Fetcher impl
+│   │   ├── fmp/                        #    Financial Modeling Prep
+│   │   ├── fred/                       #    Federal Reserve
+│   │   ├── intrinio/                   #    Intrinio
+│   │   └── ...
+│   │
+│   └── obbject_extensions/             # 📈 OBBject Extensions
+│       └── charting/                   #    Plotly charting
+│
+├── cli/                                # 💻 Command Line Interface
+│   └── openbb_cli/
+│
+└── desktop/                            # 🖥️  Desktop App (Tauri + React)
+    ├── src/                            #    React frontend
+    └── src-tauri/                      #    Rust backend
+```
+
+### Extension & Provider Registration
+
+```
+                         ┌─────────────────────────────────┐
+                         │       EXTENSION LOADER          │
+                         │    (Entry Points Discovery)     │
+                         └───────────────┬─────────────────┘
+                                         │
+              ┌──────────────────────────┼──────────────────────────┐
+              │                          │                          │
+              ▼                          ▼                          ▼
+    ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+    │  Router Extensions  │    │  Provider Extensions│    │ OBBject Extensions  │
+    │                     │    │                     │    │                     │
+    │  [tool.poetry.      │    │  [tool.poetry.      │    │  [tool.poetry.      │
+    │   plugins]          │    │   plugins]          │    │   plugins]          │
+    │  "openbb_equity"    │    │  "openbb_yfinance"  │    │  "openbb_charting"  │
+    └──────────┬──────────┘    └──────────┬──────────┘    └──────────┬──────────┘
+               │                          │                          │
+               ▼                          ▼                          ▼
+    ┌─────────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐
+    │    router = Router  │    │  Provider(          │    │   OBBject.accessors │
+    │    @router.command  │    │    name="yfinance"  │    │   .charting         │
+    │    model="Equity    │    │    fetcher_dict={   │    │   .show()           │
+    │    Historical"      │    │      "EquityHist":  │    │                     │
+    │                     │    │       Fetcher       │    │                     │
+    │                     │    │    }                │    │                     │
+    │                     │    │  )                  │    │                     │
+    └─────────────────────┘    └─────────────────────┘    └─────────────────────┘
+               │                          │                          │
+               └──────────────────────────┼──────────────────────────┘
+                                          │
+                                          ▼
+                         ┌─────────────────────────────────┐
+                         │        PROVIDER INTERFACE       │
+                         │    model_providers[model] =     │
+                         │    [fmp, yfinance, intrinio]    │
+                         └─────────────────────────────────┘
+```
+
+</details>
+
+---
+
 ## OpenBB Workspace
 
 While the Open Data Platform provides the open-source data integration foundation, **OpenBB Workspace** offers the enterprise UI for analysts to visualize datasets and leverage AI agents. The platform's "connect once, consume everywhere" architecture enables seamless integration between the two.
@@ -100,6 +408,7 @@ That's it.
 <details closed="closed">
   <summary><h2 style="display: inline-block">Table of Contents</h2></summary>
   <ol>
+    <li><a href="#architecture-overview">Architecture Overview</a></li>
     <li><a href="#1-installation">Installation</a></li>
     <li><a href="#2-contributing">Contributing</a></li>
     <li><a href="#3-license">License</a></li>

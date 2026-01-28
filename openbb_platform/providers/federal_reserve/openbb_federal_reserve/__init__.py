@@ -1,4 +1,8 @@
-"""Federal Reserve provider module."""
+"""Federal Reserve 数据提供者模块
+
+美联储 (FED) 数据集成。
+提供联邦基金利率、货币供应、收益率曲线等数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_federal_reserve.models.central_bank_holdings import (

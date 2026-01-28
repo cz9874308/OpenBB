@@ -1,4 +1,8 @@
-"""Government US provider module."""
+"""Government US 数据提供者模块
+
+美国政府开放数据 (Data.gov) 集成。
+提供国债拍卖、农产品供需、天气报告等数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_government_us.models.commodity_psd_data import (

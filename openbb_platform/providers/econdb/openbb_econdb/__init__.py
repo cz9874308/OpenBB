@@ -1,4 +1,8 @@
-"""EconDB provider module."""
+"""EconDB 数据提供者模块
+
+EconDB 经济数据 API 集成。
+提供全球宏观经济指标、GDP、港口数据等。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_econdb.models.available_indicators import EconDbAvailableIndicatorsFetcher

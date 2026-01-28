@@ -1,4 +1,8 @@
-"""Multpl Provider Module."""
+"""Multpl 数据提供者模块
+
+Multpl 市场估值数据集成。
+提供 S&P 500 市盈率、席勒 PE 等估值指标。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_multpl.models.sp500_multiples import MultplSP500MultiplesFetcher

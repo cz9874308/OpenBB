@@ -1,4 +1,8 @@
-"""ECB provider module."""
+"""ECB 数据提供者模块
+
+欧洲央行 (ECB) 数据集成。
+提供欧元区利率、汇率、收益率曲线等数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_ecb.models.balance_of_payments import ECBBalanceOfPaymentsFetcher

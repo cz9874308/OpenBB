@@ -1,4 +1,7 @@
-"""Index Historical Standard Model."""
+"""指数历史数据标准模型
+
+本模块定义了指数历史数据查询和数据的标准接口。
+"""
 
 from datetime import (
     date as dateType,
@@ -16,7 +19,17 @@ from pydantic import Field, field_validator
 
 
 class IndexHistoricalQueryParams(QueryParams):
-    """Index Historical Query."""
+    """指数历史数据查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        指数代码
+    start_date : date | None
+        开始日期
+    end_date : date | None
+        结束日期
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
     start_date: dateType | None = Field(
@@ -29,12 +42,15 @@ class IndexHistoricalQueryParams(QueryParams):
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str) -> str:
-        """Convert field to uppercase."""
+        """将指数代码转换为大写"""
         return v.upper()
 
 
 class IndexHistoricalData(Data):
-    """Index Historical Data."""
+    """指数历史数据
+
+    包含指数的 OHLCV 数据。
+    """
 
     symbol: str | None = Field(
         default=None, description=DATA_DESCRIPTIONS.get("symbol", "")
@@ -59,7 +75,7 @@ class IndexHistoricalData(Data):
     @field_validator("date", mode="before", check_fields=False)
     @classmethod
     def date_validate(cls, v):
-        """Return formatted datetime."""
+        """验证并格式化日期"""
         if ":" in str(v):
             return parser.isoparse(str(v))
         return parser.parse(str(v)).date()

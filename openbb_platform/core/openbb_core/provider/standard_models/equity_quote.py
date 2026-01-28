@@ -1,4 +1,7 @@
-"""Equity Quote Standard Model."""
+"""股票报价标准模型
+
+本模块定义了股票实时报价查询和数据的标准接口。
+"""
 
 from datetime import datetime
 
@@ -12,19 +15,28 @@ from pydantic import Field, field_validator
 
 
 class EquityQuoteQueryParams(QueryParams):
-    """Equity Quote Query."""
+    """股票报价查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        股票代码
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
 
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str) -> str:
-        """Convert field to uppercase."""
+        """将股票代码转换为大写"""
         return v.upper()
 
 
 class EquityQuoteData(Data):
-    """Equity Quote Data."""
+    """股票报价数据
+
+    包含股票的实时买卖报价、最新成交价等信息。
+    """
 
     symbol: str = Field(description=DATA_DESCRIPTIONS.get("symbol", ""))
     asset_type: str | None = Field(

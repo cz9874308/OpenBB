@@ -1,4 +1,7 @@
-"""Technical Analysis Router."""
+"""技术分析路由模块
+
+定义技术分析指标相关的 API 端点和命令。
+"""
 
 # pylint: disable=too-many-lines,unused-import,too-many-arguments,too-many-positional-arguments
 

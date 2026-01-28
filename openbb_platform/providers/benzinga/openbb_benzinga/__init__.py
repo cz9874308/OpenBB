@@ -1,4 +1,8 @@
-"""Benzinga provider module."""
+"""Benzinga 数据提供者模块
+
+Benzinga 金融新闻和分析师评级 API 集成。
+提供公司新闻、目标价、分析师搜索等数据。
+"""
 
 from openbb_benzinga.models.analyst_search import BenzingaAnalystSearchFetcher
 from openbb_benzinga.models.company_news import BenzingaCompanyNewsFetcher

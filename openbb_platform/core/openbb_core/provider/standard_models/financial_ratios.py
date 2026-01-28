@@ -1,4 +1,7 @@
-"""Financial Ratios Standard Model."""
+"""财务比率标准模型
+
+本模块定义了财务比率查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -12,7 +15,15 @@ from pydantic import Field, field_validator
 
 
 class FinancialRatiosQueryParams(QueryParams):
-    """Financial Ratios Query."""
+    """财务比率查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        股票代码
+    limit : int | None
+        返回记录数限制
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
     limit: int | None = Field(
@@ -22,12 +33,15 @@ class FinancialRatiosQueryParams(QueryParams):
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str):
-        """Convert field to uppercase."""
+        """将股票代码转换为大写"""
         return v.upper()
 
 
 class FinancialRatiosData(Data):
-    """Financial Ratios Standard Model."""
+    """财务比率数据
+
+    包含公司的各类财务比率。
+    """
 
     symbol: str | None = Field(
         default=None, description=DATA_DESCRIPTIONS.get("symbol", "")

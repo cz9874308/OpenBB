@@ -1,4 +1,7 @@
-"""Example class to represent endpoint examples."""
+"""端点示例模块
+
+本模块定义了 API 端点示例的表示类。
+"""
 
 from abc import abstractmethod
 from datetime import date, datetime, timedelta
@@ -12,11 +15,20 @@ from pydantic import (
     model_validator,
 )
 
+# 需要引号的类型集合
 QUOTE_TYPES = {str, date}
 
 
 class Example(BaseModel):
-    """Example model."""
+    """示例模型基类
+
+    所有示例类型的抽象基类。
+
+    Attributes
+    ----------
+    scope : str
+        示例作用域（如 "api" 或 "python"）
+    """
 
     scope: str
 
@@ -24,28 +36,42 @@ class Example(BaseModel):
 
     @abstractmethod
     def to_python(self, **kwargs) -> str:
-        """Return a Python code representation of the example."""
+        """返回示例的 Python 代码表示"""
 
 
 class APIEx(Example):
-    """API Example model."""
+    """API 示例模型
+
+    用于定义 API 端点的示例调用。
+
+    Attributes
+    ----------
+    scope : Literal["api"]
+        作用域，固定为 "api"
+    description : str | None
+        描述（当参数超过 3 个时必填）
+    parameters : dict
+        示例参数
+    provider : str | None
+        数据提供者（计算属性）
+    """
 
     scope: Literal["api"] = "api"
     description: str | None = Field(
-        default=None, description="Optional description unless more than 3 parameters"
+        default=None, description="可选描述，当参数超过 3 个时必填"
     )
     parameters: dict[str, str | int | float | bool | list[str] | list[dict[str, Any]]]
 
     @computed_field  # type: ignore[misc]
     @property
     def provider(self) -> str | None:
-        """Return the provider from the parameters."""
+        """从参数中获取提供者"""
         return self.parameters.get("provider")  # type: ignore
 
     @model_validator(mode="before")
     @classmethod
     def validate_model(cls, values: dict) -> dict:
-        """Validate model."""
+        """验证模型"""
         parameters = values.get("parameters", {})
         provider = parameters.pop("provider", None)
 
@@ -61,7 +87,7 @@ class APIEx(Example):
 
     @staticmethod
     def _unpack_type(type_: type) -> set:
-        """Unpack types from types, example Union[List[str], int] -> {typing._GenericAlias, int}."""
+        """解包类型，例如 Union[List[str], int] -> {typing._GenericAlias, int}"""
         if (
             hasattr(type_, "__args__")
             and type(type_) is not _GenericAlias  # pylint: disable=C0123
@@ -71,7 +97,7 @@ class APIEx(Example):
 
     @staticmethod
     def _shift(i: int) -> float:
-        """Return a transformation of the integer."""
+        """返回整数的变换值"""
         return 2 * (i + 1) / (2 * i) % 1 + 1
 
     @staticmethod
@@ -81,23 +107,22 @@ class APIEx(Example):
         sample: dict[str, Any] | None = None,
         multiindex: dict[str, Any] | None = None,
     ) -> list[dict]:
-        """Generate mock data from a sample.
+        """从样本生成模拟数据
 
         Parameters
         ----------
         dataset : str
-            The type of data to return:
-            - 'timeseries': Time series data
-            - 'panel': Panel data (multiindex)
-
+            返回的数据类型：
+            - 'timeseries': 时间序列数据
+            - 'panel': 面板数据（多重索引）
         size : int
-            The size of the data to return, default is 5.
-        sample : Optional[Dict[str, Any]], optional
-            A sample of the data to return, by default None.
-        multiindex_names : Optional[List[str]], optional
-            The names of the multiindex, by default None.
+            返回数据的大小，默认为 5
+        sample : dict[str, Any] | None, optional
+            数据样本，默认为 None
+        multiindex : dict[str, Any] | None, optional
+            多重索引定义，默认为 None
 
-        Timeseries default sample:
+        时间序列默认样本：
         {
             "date": "2023-01-01",
             "open": 110.0,
@@ -107,7 +132,7 @@ class APIEx(Example):
             "volume": 10000,
         }
 
-        Panel default sample:
+        面板数据默认样本：
         {
             "portfolio_value": 100000,
             "risk_free_rate": 0.02,
@@ -116,8 +141,8 @@ class APIEx(Example):
 
         Returns
         -------
-        List[Dict]
-            A list of dictionaries with the mock data.
+        list[dict]
+            包含模拟数据的字典列表
         """
         if dataset == "timeseries":
             sample = sample or {
@@ -171,7 +196,7 @@ class APIEx(Example):
         raise ValueError(f"Dataset '{dataset}' not found.")
 
     def to_python(self, **kwargs) -> str:
-        """Return a Python code representation of the example."""
+        """返回示例的 Python 代码表示"""
         indentation = kwargs.get("indentation", "")
         func_path = kwargs.get("func_path", ".func_router.func_name")
         param_types: dict[str, type] = kwargs.get("param_types", {})
@@ -197,14 +222,26 @@ class APIEx(Example):
 
 
 class PythonEx(Example):
-    """Python Example model."""
+    """Python 示例模型
+
+    用于定义 Python SDK 的代码示例。
+
+    Attributes
+    ----------
+    scope : Literal["python"]
+        作用域，固定为 "python"
+    description : str
+        示例描述
+    code : list[str]
+        代码行列表
+    """
 
     scope: Literal["python"] = "python"
     description: str
     code: list[str]
 
     def to_python(self, **kwargs) -> str:
-        """Return a Python code representation of the example."""
+        """返回示例的 Python 代码表示"""
         indentation = kwargs.get("indentation", "")
         prompt = kwargs.get("prompt", "")
 
@@ -222,7 +259,22 @@ def filter_list(
     examples: list[Example],
     providers: list[str],
 ) -> list[Example]:
-    """Filter list of examples."""
+    """过滤示例列表
+
+    根据提供者过滤 API 示例。
+
+    Parameters
+    ----------
+    examples : list[Example]
+        示例列表
+    providers : list[str]
+        可用提供者列表
+
+    Returns
+    -------
+    list[Example]
+        过滤后的示例列表
+    """
     return [
         e
         for e in examples

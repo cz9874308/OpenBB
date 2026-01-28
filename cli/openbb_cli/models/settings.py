@@ -13,14 +13,17 @@ VERSION = get_package_version("openbb-cli")
 
 
 class SettingGroups(Enum):
-    """Setting types."""
+    """设置类型枚举。"""
 
     feature_flags = "feature_flag"
     preferences = "preference"
 
 
 class Settings(BaseModel):
-    """Settings model."""
+    """CLI 设置模型。
+
+    包含所有 CLI 配置选项，支持从 .env 文件加载。
+    """
 
     # Platform CLI version
     VERSION: str = VERSION
@@ -146,7 +149,7 @@ class Settings(BaseModel):
     model_config = ConfigDict(validate_assignment=True)
 
     def __repr__(self) -> str:
-        """Return a string representation of the model."""
+        """返回模型的字符串表示。"""
         return f"{self.__class__.__name__}\n\n" + "\n".join(
             f"{k}: {v}" for k, v in self.model_dump().items()
         )
@@ -154,7 +157,7 @@ class Settings(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def from_env(cls, values: dict) -> dict:
-        """Load settings from .env."""
+        """从 .env 文件加载设置。"""
         settings = {}
         settings.update(dotenv_values(ENV_FILE_SETTINGS))
         settings.update(values)
@@ -162,6 +165,6 @@ class Settings(BaseModel):
         return filtered
 
     def set_item(self, key: str, value: Any) -> None:
-        """Set an item in the model and save to .env."""
+        """设置模型项并保存到 .env 文件。"""
         setattr(self, key, value)
         set_key(str(ENV_FILE_SETTINGS), "OPENBB_" + key, str(value))

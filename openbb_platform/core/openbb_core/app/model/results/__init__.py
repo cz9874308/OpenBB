@@ -1,1 +1,4 @@
-"""OpenBB Core App Model Results."""
+"""OpenBB 结果模型模块
+
+本模块包含各种结果类型的定义。
+"""

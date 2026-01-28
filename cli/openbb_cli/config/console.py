@@ -1,4 +1,7 @@
-"""OpenBB CLI Console Module."""
+"""OpenBB CLI 控制台模块
+
+提供富文本控制台输出，支持面板显示和主题样式。
+"""
 
 from typing import TYPE_CHECKING, Any
 
@@ -14,14 +17,17 @@ if TYPE_CHECKING:
 
 
 class Console:
-    """Create a rich console to wrap the console print with a Panel."""
+    """富文本控制台类。
+
+    封装 Rich 控制台，支持面板输出。
+    """
 
     def __init__(
         self,
         settings: "Settings",
         style: dict[str, Any] | None = None,
     ):
-        """Initialize the ConsoleAndPanel class."""
+        """初始化控制台类。"""
         self._console = RichConsole(
             theme=Theme(style),
             highlight=False,
@@ -33,7 +39,7 @@ class Console:
 
     @staticmethod
     def _filter_rich_tags(text):
-        """Filter out rich tags from text."""
+        """从文本中过滤 Rich 标签。"""
         for val in RICH_TAGS:
             text = text.replace(val, "")
 
@@ -43,7 +49,7 @@ class Console:
     def _blend_text(
         message: str, color1: tuple[int, int, int], color2: tuple[int, int, int]
     ) -> Text:
-        """Blend text from one color to another."""
+        """将文本从一种颜色渐变到另一种颜色。"""
         text = Text(message)
         r1, g1, b1 = color1
         r2, g2, b2 = color2
@@ -58,7 +64,7 @@ class Console:
         return text
 
     def print(self, *args, **kwargs):
-        """Print the text to the console."""
+        """将文本打印到控制台。"""
         if kwargs and "text" in list(kwargs) and "menu" in list(kwargs):
             if not self._settings.TEST_MODE:
                 if self._settings.ENABLE_RICH_PANEL:
@@ -88,6 +94,6 @@ class Console:
             print(*args, **kwargs)  # noqa: T201
 
     def input(self, *args, **kwargs):
-        """Get input from the user."""
+        """获取用户输入。"""
         self.print(*args, **kwargs, end="")
         return input()

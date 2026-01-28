@@ -1,4 +1,8 @@
-"""OpenBB IMF Provider Module."""
+"""IMF 数据提供者模块
+
+国际货币基金组织 (IMF) 数据集成。
+提供 CPI、贸易方向、港口数据等国际经济数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_imf.models.available_indicators import ImfAvailableIndicatorsFetcher

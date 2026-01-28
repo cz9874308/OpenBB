@@ -1,4 +1,7 @@
-"""Equity Info Standard Model."""
+"""股票信息标准模型
+
+本模块定义了公司/股票基本信息查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -12,19 +15,28 @@ from pydantic import Field, field_validator
 
 
 class EquityInfoQueryParams(QueryParams):
-    """Equity Info Query."""
+    """股票信息查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        股票代码
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
 
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str) -> str:
-        """Convert field to uppercase."""
+        """将股票代码转换为大写"""
         return v.upper()
 
 
 class EquityInfoData(Data):
-    """Equity Info Data."""
+    """股票信息数据
+
+    包含公司的基本信息，如名称、地址、行业等。
+    """
 
     symbol: str = Field(description=DATA_DESCRIPTIONS.get("symbol", ""))
     name: str | None = Field(default=None, description="Common name of the company.")

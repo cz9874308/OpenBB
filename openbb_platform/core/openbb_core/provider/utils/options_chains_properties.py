@@ -1,4 +1,7 @@
-"""Options Chains Properties."""
+"""期权链属性模块
+
+本模块为期权链数据提供丰富的计算属性和策略分析方法。
+"""
 
 # pylint: disable=too-many-lines, too-many-arguments, too-many-locals, too-many-statements, too-many-positional-arguments
 
@@ -14,9 +17,13 @@ if TYPE_CHECKING:
 
 
 class OptionsChainsProperties(Data):
-    """Base Class For OptionsChainsData.
+    """期权链数据基类
 
-    Note: This class is not intended to be initialized directly and requires a validated instance of OptionsChainsData.
+    为 OptionsChainsData 提供计算属性和策略分析方法。
+
+    Note
+    ----
+    此类不应直接实例化，需要通过验证的 OptionsChainsData 实例使用。
     """
 
     @property

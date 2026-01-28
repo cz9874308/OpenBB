@@ -1,4 +1,7 @@
-"""Economy Router."""
+"""经济数据路由模块
+
+定义经济数据相关的 API 端点和命令。
+"""
 
 # pylint: disable=unused-argument
 

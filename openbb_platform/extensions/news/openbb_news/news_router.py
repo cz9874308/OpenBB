@@ -1,5 +1,8 @@
 # pylint: disable=import-outside-toplevel, W0613:unused-argument
-"""News Router."""
+"""新闻路由模块
+
+定义新闻数据相关的 API 端点和命令。
+"""
 
 from openbb_core.app.model.command_context import CommandContext
 from openbb_core.app.model.example import APIEx

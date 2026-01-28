@@ -1,1 +1,4 @@
-"""OpenBB Regulators Extension."""
+"""监管数据扩展模块
+
+提供 SEC、CFTC 等监管机构数据相关的 API 端点。
+"""

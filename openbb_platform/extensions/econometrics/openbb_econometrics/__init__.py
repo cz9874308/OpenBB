@@ -1,1 +1,4 @@
-"""OpenBB Econometrics Extension."""
+"""计量经济学扩展模块
+
+提供计量经济学分析工具的 API 端点。
+"""

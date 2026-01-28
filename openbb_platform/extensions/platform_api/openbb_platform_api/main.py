@@ -1,6 +1,6 @@
-"""OpenBB Platform API.
+"""OpenBB Platform API 主模块
 
-Launch script and widgets builder for the OpenBB Workspace Custom Backend.
+启动脚本和 OpenBB Workspace 自定义后端的 widgets 构建器。
 """
 
 import json

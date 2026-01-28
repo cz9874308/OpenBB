@@ -1,4 +1,7 @@
-"""Module for translating a function into an argparse program."""
+"""函数到 argparse 程序的翻译模块
+
+将 Python 函数自动转换为 argparse 命令行程序。
+"""
 
 import argparse
 import inspect
@@ -36,7 +39,7 @@ SEP = "__"
 
 
 class ArgparseTranslator:
-    """Class to translate a function into an argparse program."""
+    """将函数翻译为 argparse 程序的类。"""
 
     def __init__(
         self,
@@ -44,12 +47,16 @@ class ArgparseTranslator:
         custom_argument_groups: list[ArgparseArgumentGroupModel] | None = None,
         add_help: bool | None = True,
     ):
-        """
-        Initialize the ArgparseTranslator.
+        """初始化 ArgparseTranslator。
 
-        Args:
-            func (Callable): The function to translate into an argparse program.
-            add_help (Optional[bool], optional): Whether to add the help argument. Defaults to False.
+        Parameters
+        ----------
+        func : Callable
+            要翻译为 argparse 程序的函数
+        custom_argument_groups : list[ArgparseArgumentGroupModel] | None
+            自定义参数组列表
+        add_help : bool | None
+            是否添加帮助参数，默认为 True
         """
         self.func = func
         self.signature = inspect.signature(func)
@@ -75,7 +82,7 @@ class ArgparseTranslator:
                     self._handle_argument_in_groups(argument, argparse_group)
 
     def _handle_argument_in_groups(self, argument, group):
-        """Handle the argument and add it to the parser."""
+        """处理参数并将其添加到解析器。"""
 
         def _update_providers(input_string: str, new_provider: list[str | None]) -> str:
             pattern = r"\(provider:\s*(.*?)\)"
@@ -146,12 +153,12 @@ class ArgparseTranslator:
 
     @property
     def parser(self) -> argparse.ArgumentParser:
-        """Get the argparse parser."""
+        """获取 argparse 解析器。"""
         return deepcopy(self._parser)
 
     @staticmethod
     def _build_description(func_doc: str) -> str:
-        """Build the description of the argparse program from the function docstring."""
+        """从函数文档字符串构建 argparse 程序描述。"""
         if not func_doc:
             return ""
 
@@ -166,7 +173,7 @@ class ArgparseTranslator:
 
         # Clean up any remaining type-style annotations in the summary
         def clean_type_annotation(type_str: str) -> str:
-            """Clean up type annotations for human readability."""
+            """清理类型注解以提高可读性。"""
             # Handle pipe unions: int | str -> int or str
             type_str = re.sub(r"\s*\|\s*", " or ", type_str)
             # Handle Annotated[type, ...] -> type
@@ -199,13 +206,13 @@ class ArgparseTranslator:
 
     @staticmethod
     def _param_is_default(param: inspect.Parameter) -> bool:
-        """Return True if the parameter has a default value."""
+        """如果参数有默认值则返回 True。"""
         return param.default != inspect.Parameter.empty
 
     def _get_action_type(
         self, param: inspect.Parameter
     ) -> Literal["store_true", "store"]:
-        """Return the argparse action type for the given parameter."""
+        """返回给定参数的 argparse action 类型。"""
         param_type = self.type_hints[param.name]
         origin = get_origin(param_type)
         args = get_args(param_type)
@@ -225,12 +232,12 @@ class ArgparseTranslator:
     def _get_type_and_choices(
         self, param: inspect.Parameter
     ) -> tuple[type[Any], tuple[Any, ...]]:
-        """Return the type and choices for the given parameter."""
+        """返回给定参数的类型和选项。"""
 
         def get_base_type(  # pylint: disable=R0911 #  noqa:PLR0911
             t: Any,
         ) -> type:
-            """Recursively find the base type for argparse."""
+            """递归查找 argparse 的基础类型。"""
             origin = get_origin(t)
             args = get_args(t)
 
@@ -261,7 +268,7 @@ class ArgparseTranslator:
             return str
 
         def get_choices(t: Any) -> tuple:
-            """Recursively find the choices for argparse."""
+            """递归查找 argparse 的选项。"""
             origin = get_origin(t)
             args = get_args(t)
 
@@ -295,7 +302,7 @@ class ArgparseTranslator:
     def _split_annotation(
         base_annotation: type[Any], custom_annotation_type: type
     ) -> tuple[type[Any], list[Any]]:
-        """Find the base annotation and the custom annotations, namely the OpenBBField."""
+        """查找基础注解和自定义注解（即 OpenBBField）。"""
         if get_origin(base_annotation) is not Annotated:
             return base_annotation, []
         base_annotation, *maybe_custom_annotations = get_args(base_annotation)
@@ -307,7 +314,7 @@ class ArgparseTranslator:
 
     @classmethod
     def _get_argument_custom_help(cls, param: inspect.Parameter) -> str | None:
-        """Return the help annotation for the given parameter."""
+        """返回给定参数的帮助注解。"""
         base_annotation = param.annotation
         _, custom_annotations = cls._split_annotation(base_annotation, OpenBBField)
         help_annotation = (
@@ -317,7 +324,7 @@ class ArgparseTranslator:
 
     @classmethod
     def _get_argument_custom_choices(cls, param: inspect.Parameter) -> str | None:
-        """Return the help annotation for the given parameter."""
+        """返回给定参数的选项注解。"""
         base_annotation = param.annotation
         _, custom_annotations = cls._split_annotation(base_annotation, OpenBBField)
         choices_annotation = (
@@ -326,7 +333,7 @@ class ArgparseTranslator:
         return choices_annotation
 
     def _get_nargs(self, param: inspect.Parameter) -> Literal["+"] | None:
-        """Return the nargs annotation for the given parameter."""
+        """返回给定参数的 nargs 注解。"""
         param_type = self.type_hints[param.name]
         origin = get_origin(param_type)
 
@@ -341,7 +348,7 @@ class ArgparseTranslator:
         return None
 
     def _generate_argparse_arguments(self, parameters) -> None:
-        """Generate the argparse arguments from the function parameters."""
+        """从函数参数生成 argparse 参数。"""
         for param in parameters.values():
             if param.name == "kwargs":
                 continue
@@ -424,7 +431,7 @@ class ArgparseTranslator:
 
     @staticmethod
     def _unflatten_args(args: dict) -> dict[str, Any]:
-        """Unflatten the args that were flattened by the custom types."""
+        """展开被自定义类型扁平化的参数。"""
         result: dict[str, Any] = {}
         for key, value in args.items():
             if SEP in key:
@@ -440,7 +447,7 @@ class ArgparseTranslator:
         return result
 
     def _update_with_custom_types(self, kwargs: dict[str, Any]) -> dict[str, Any]:
-        """Update the kwargs with the custom types."""
+        """使用自定义类型更新 kwargs。"""
         # for each argument in the signature that is a custom type, we need to
         # update the kwargs with the custom type kwargs
         for param in self.signature.parameters.values():
@@ -457,15 +464,17 @@ class ArgparseTranslator:
         self,
         parsed_args: argparse.Namespace | None = None,
     ) -> Any:
-        """
-        Execute the original function with the parsed arguments.
+        """使用解析后的参数执行原始函数。
 
-        Args:
-            parsed_args (Optional[argparse.Namespace], optional): The parsed arguments. Defaults to None.
+        Parameters
+        ----------
+        parsed_args : argparse.Namespace | None
+            解析后的参数，默认为 None
 
-        Returns:
-            Any: The return value of the original function.
-
+        Returns
+        -------
+        Any
+            原始函数的返回值
         """
         kwargs = self._unflatten_args(vars(parsed_args))
         kwargs = self._update_with_custom_types(kwargs)
@@ -489,22 +498,24 @@ class ArgparseTranslator:
         return self.func(**kwargs)
 
     def parse_args_and_execute(self) -> Any:
-        """
-        Parse the arguments and executes the original function.
+        """解析参数并执行原始函数。
 
-        Returns:
-            Any: The return value of the original function.
+        Returns
+        -------
+        Any
+            原始函数的返回值
         """
         parsed_args = self._parser.parse_args()
 
         return self.execute_func(parsed_args)
 
     def translate(self) -> Callable:
-        """
-        Wrap the original function with an argparse program.
+        """将原始函数包装为 argparse 程序。
 
-        Returns:
-            Callable: The original function wrapped with an argparse program.
+        Returns
+        -------
+        Callable
+            包装后的函数
         """
 
         def wrapper_func():

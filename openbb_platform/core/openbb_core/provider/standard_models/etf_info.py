@@ -1,4 +1,7 @@
-"""ETF Info Standard Model."""
+"""ETF 信息标准模型
+
+本模块定义了 ETF 信息查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -12,19 +15,28 @@ from pydantic import Field, field_validator
 
 
 class EtfInfoQueryParams(QueryParams):
-    """ETF Info Query."""
+    """ETF 信息查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        ETF 代码
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", "") + " (ETF)")
 
     @field_validator("symbol")
     @classmethod
     def to_upper(cls, v: str) -> str:
-        """Convert field to uppercase."""
+        """将 ETF 代码转换为大写"""
         return v.upper()
 
 
 class EtfInfoData(Data):
-    """ETF Info Data."""
+    """ETF 信息数据
+
+    包含 ETF 的基本信息。
+    """
 
     symbol: str = Field(description=DATA_DESCRIPTIONS.get("symbol", "") + " (ETF)")
     name: str | None = Field(description="Name of the ETF.")

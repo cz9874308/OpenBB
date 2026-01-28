@@ -1,4 +1,8 @@
-"""Seeking Alpha Provider module."""
+"""Seeking Alpha 数据提供者模块
+
+Seeking Alpha 投资分析数据集成。
+提供财报日历、EPS 和销售预测等数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_seeking_alpha.models.calendar_earnings import SACalendarEarningsFetcher

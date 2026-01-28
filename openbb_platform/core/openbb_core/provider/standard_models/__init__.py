@@ -1,1 +1,7 @@
-"""Standard models for OpenBB Provider."""
+"""OpenBB Provider 标准模型
+
+本模块包含所有标准数据模型的定义。
+
+标准模型定义了查询参数（QueryParams）和数据输出（Data）的
+统一接口，各数据提供者通过继承这些标准模型来实现具体功能。
+"""

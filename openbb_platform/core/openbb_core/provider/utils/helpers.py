@@ -1,4 +1,15 @@
-"""Provider helpers."""
+"""Provider 辅助工具模块
+
+本模块提供数据提供者的通用辅助函数。
+
+核心功能
+--------
+
+- **HTTP 请求**: make_request, amake_request, amake_requests
+- **会话管理**: get_requests_session, get_async_requests_session
+- **数据处理**: filter_by_dates, to_snake_case
+- **异步工具**: run_async, maybe_coroutine
+"""
 
 import asyncio
 import os

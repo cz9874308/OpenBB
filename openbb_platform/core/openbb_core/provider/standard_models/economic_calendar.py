@@ -1,4 +1,7 @@
-"""Economic Calendar Standard Model."""
+"""经济日历标准模型
+
+本模块定义了经济日历查询和数据的标准接口。
+"""
 
 from datetime import (
     date as dateType,
@@ -15,7 +18,15 @@ from pydantic import Field
 
 
 class EconomicCalendarQueryParams(QueryParams):
-    """Economic Calendar Query."""
+    """经济日历查询参数
+
+    Attributes
+    ----------
+    start_date : date | None
+        开始日期
+    end_date : date | None
+        结束日期
+    """
 
     start_date: dateType | None = Field(
         default=None,
@@ -28,7 +39,10 @@ class EconomicCalendarQueryParams(QueryParams):
 
 
 class EconomicCalendarData(Data):
-    """Economic Calendar Data."""
+    """经济日历数据
+
+    包含经济事件的详细信息。
+    """
 
     date: datetime | None = Field(
         default=None, description=DATA_DESCRIPTIONS.get("date", "")

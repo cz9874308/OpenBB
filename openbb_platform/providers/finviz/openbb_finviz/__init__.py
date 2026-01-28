@@ -1,4 +1,8 @@
-"""Finviz provider module."""
+"""Finviz 数据提供者模块
+
+Finviz 股票筛选和分析数据集成。
+提供股票筛选、关键指标、价格表现等数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_finviz.models.compare_groups import FinvizCompareGroupsFetcher

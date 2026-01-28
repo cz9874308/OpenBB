@@ -1,4 +1,7 @@
-"""Settings module."""
+"""CLI 会话管理模块
+
+管理 CLI 会话状态，包括用户设置、样式、控制台和对象注册表。
+"""
 
 import sys
 from pathlib import Path
@@ -19,7 +22,7 @@ from openbb_cli.models.settings import Settings
 
 
 def _get_backend():
-    """Get the Platform charting backend."""
+    """获取平台图表后端。"""
     try:
         return get_backend()
     except ValueError:
@@ -34,10 +37,13 @@ def _get_backend():
 
 
 class Session(metaclass=SingletonMeta):
-    """Session class."""
+    """CLI 会话类。
+
+    管理整个 CLI 生命周期的状态和资源。
+    """
 
     def __init__(self):
-        """Initialize session."""
+        """初始化会话。"""
 
         self._obb = obb
         self._settings = Settings()
@@ -55,36 +61,36 @@ class Session(metaclass=SingletonMeta):
 
     @property
     def user(self) -> User:
-        """Get platform user."""
+        """获取平台用户。"""
         return self._obb.user  # type: ignore[union-attr]
 
     @property
     def settings(self) -> Settings:
-        """Get CLI settings."""
+        """获取 CLI 设置。"""
         return self._settings
 
     @property
     def style(self) -> Style:
-        """Get CLI style."""
+        """获取 CLI 样式。"""
         return self._style
 
     @property
     def console(self) -> Console:
-        """Get console."""
+        """获取控制台。"""
         return self._console
 
     @property
     def obbject_registry(self) -> Registry:
-        """Get obbject registry."""
+        """获取 OBBject 注册表。"""
         return self._obbject_registry
 
     @property
     def prompt_session(self) -> PromptSession | None:
-        """Get prompt session."""
+        """获取提示会话。"""
         return self._prompt_session
 
     def _get_prompt_session(self) -> PromptSession | None:
-        """Initialize prompt session."""
+        """初始化提示会话。"""
         try:
             if sys.stdin.isatty():
                 prompt_session: PromptSession | None = PromptSession(
@@ -98,7 +104,7 @@ class Session(metaclass=SingletonMeta):
         return prompt_session
 
     def max_obbjects_exceeded(self) -> bool:
-        """Check if max obbjects exceeded."""
+        """检查是否超过最大 OBBject 数量。"""
         return (
             len(self.obbject_registry.all) >= self.settings.N_TO_KEEP_OBBJECT_REGISTRY
         )

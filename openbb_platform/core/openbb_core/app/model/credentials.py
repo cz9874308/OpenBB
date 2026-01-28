@@ -1,4 +1,22 @@
-"""Credentials model and its utilities."""
+"""凭证模型及其工具模块
+
+本模块定义了 OpenBB 平台的凭证管理系统。
+
+核心功能
+--------
+
+- **Credentials**: 凭证模型，存储所有数据提供者的 API 密钥
+- **CredentialsLoader**: 凭证加载器，从提供者和扩展加载凭证定义
+- **OBBSecretStr**: 安全字符串类型，用于存储敏感信息
+
+凭证来源
+--------
+
+凭证按以下优先级加载：
+1. 环境变量
+2. user_settings.json 文件
+3. 默认值（None）
+"""
 
 import json
 import os
@@ -23,10 +41,11 @@ from pydantic.functional_serializers import PlainSerializer
 
 
 class LoadingError(Exception):
-    """Error loading extension."""
+    """扩展加载错误"""
 
 
-# @model_serializer blocks model_dump with pydantic parameters (include, exclude)
+# @model_serializer 会阻止带参数的 model_dump（include, exclude）
+# OBBSecretStr 是带序列化器的安全字符串类型
 OBBSecretStr = Annotated[
     SecretStr,
     PlainSerializer(
@@ -36,14 +55,28 @@ OBBSecretStr = Annotated[
 
 
 class CredentialsLoader:
-    """Here we create the Credentials model."""
+    """凭证加载器
+
+    负责从数据提供者和 OBBject 扩展收集凭证定义，
+    并创建动态的 Credentials 模型。
+
+    Attributes
+    ----------
+    credentials : dict[str, list[str]]
+        提供者名称到凭证名称列表的映射
+    env : Env
+        环境变量管理器
+    """
 
     credentials: dict[str, list[str]] = {}
     env = Env()
 
     @staticmethod
     def _normalize_credential_map(raw: dict | None) -> dict[str, object]:
-        """Lower-case keys and drop empty overrides so env values can win."""
+        """规范化凭证映射
+
+        将键转换为小写，并删除空值覆盖以便环境变量值生效。
+        """
         if not raw:
             return {}
         normalized: dict[str, object] = {}
@@ -58,7 +91,18 @@ class CredentialsLoader:
         return normalized
 
     def format_credentials(self, additional: dict) -> dict[str, tuple[object, None]]:
-        """Prepare credentials map to be used in the Credentials model."""
+        """准备凭证映射供 Credentials 模型使用
+
+        Parameters
+        ----------
+        additional : dict
+            额外的凭证数据
+
+        Returns
+        -------
+        dict[str, tuple[object, None]]
+            格式化后的凭证字段定义
+        """
         formatted: dict[str, tuple[object, None]] = {}
         additional_data = dict(additional)
 
@@ -92,7 +136,7 @@ class CredentialsLoader:
         return dict(sorted(formatted.items()))
 
     def from_obbject(self) -> None:
-        """Load credentials from OBBject extensions."""
+        """从 OBBject 扩展加载凭证"""
         for ext_name, ext in ExtensionLoader().obbject_objects.items():  # type: ignore[attr-defined]
             try:
                 if ext_name in self.credentials:
@@ -113,11 +157,19 @@ class CredentialsLoader:
                 )
 
     def from_providers(self) -> None:
-        """Load credentials from providers."""
+        """从数据提供者加载凭证"""
         self.credentials = ProviderInterface().credentials
 
     def load(self) -> BaseModel:
-        """Load credentials from providers."""
+        """加载凭证并创建 Credentials 模型
+
+        从提供者、扩展、用户设置文件和环境变量加载凭证。
+
+        Returns
+        -------
+        BaseModel
+            动态创建的 Credentials 模型类
+        """
         self.from_providers()
         self.from_obbject()
         path = Path(USER_SETTINGS_PATH)
@@ -173,7 +225,16 @@ _Credentials = CredentialsLoader().load()
 
 
 class Credentials(_Credentials):  # type: ignore
-    """Credentials model used to store provider credentials."""
+    """凭证模型
+
+    用于存储数据提供者的 API 凭证。
+    支持从环境变量和用户设置文件加载。
+
+    Attributes
+    ----------
+    _env_defaults : ClassVar[dict[str, object]]
+        从环境变量加载的默认凭证值
+    """
 
     model_config = ConfigDict(extra="allow")
     _env_defaults: ClassVar[dict[str, object]] = getattr(
@@ -182,6 +243,7 @@ class Credentials(_Credentials):  # type: ignore
 
     @staticmethod
     def _is_unset(value: object) -> bool:
+        """检查值是否未设置"""
         if value is None:
             return True
         if isinstance(value, SecretStr):
@@ -191,7 +253,10 @@ class Credentials(_Credentials):  # type: ignore
         return False
 
     def model_post_init(self, __context) -> None:
-        """Set unset credentials from environment variables."""
+        """模型初始化后处理
+
+        从环境变量设置未设置的凭证。
+        """
         super().model_post_init(__context)
         for key, secret in self._env_defaults.items():
             if key not in self.model_fields:
@@ -201,7 +266,7 @@ class Credentials(_Credentials):  # type: ignore
                 setattr(self, key, secret)
 
     def __repr__(self) -> str:
-        """Define the string representation of the credentials."""
+        """返回凭证的字符串表示（值被遮蔽）"""
         return (
             self.__class__.__name__
             + "\n\n"
@@ -209,7 +274,7 @@ class Credentials(_Credentials):  # type: ignore
         )
 
     def show(self):
-        """Unmask credentials and print them."""
+        """显示未遮蔽的凭证值"""
         print(  # noqa: T201
             self.__class__.__name__
             + "\n\n"
@@ -219,5 +284,11 @@ class Credentials(_Credentials):  # type: ignore
         )
 
     def update(self, incoming: "Credentials"):
-        """Update current credentials."""
+        """更新当前凭证
+
+        Parameters
+        ----------
+        incoming : Credentials
+            要合并的凭证对象
+        """
         self.__dict__.update(incoming.model_dump(exclude_none=True))

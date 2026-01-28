@@ -1,4 +1,8 @@
-"""BLS Provider Module."""
+"""BLS 数据提供者模块
+
+美国劳工统计局 (BLS) 数据集成。
+提供就业、通胀、生产力等劳动力市场数据。
+"""
 
 from openbb_bls.models.search import BlsSearchFetcher
 from openbb_bls.models.series import BlsSeriesFetcher

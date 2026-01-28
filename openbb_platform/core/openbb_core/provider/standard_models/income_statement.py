@@ -1,4 +1,7 @@
-"""Income Statement Standard Model."""
+"""利润表标准模型
+
+本模块定义了利润表（损益表）查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -11,7 +14,15 @@ from pydantic import Field, NonNegativeInt, field_validator
 
 
 class IncomeStatementQueryParams(QueryParams):
-    """Income Statement Query."""
+    """利润表查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        股票代码
+    limit : NonNegativeInt | None
+        返回记录数限制
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
     limit: NonNegativeInt | None = Field(
@@ -21,12 +32,15 @@ class IncomeStatementQueryParams(QueryParams):
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str):
-        """Convert field to uppercase."""
+        """将股票代码转换为大写"""
         return v.upper()
 
 
 class IncomeStatementData(Data):
-    """Income Statement Data."""
+    """利润表数据
+
+    包含公司的收入、成本和利润信息。
+    """
 
     period_ending: dateType = Field(description="The end date of the reporting period.")
     fiscal_period: str | None = Field(

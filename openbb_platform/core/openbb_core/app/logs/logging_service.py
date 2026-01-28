@@ -1,4 +1,7 @@
-"""Logging Service Module."""
+"""日志服务模块
+
+本模块提供 OpenBB 平台的日志记录服务。
+"""
 
 import json
 import logging
@@ -20,44 +23,29 @@ from pydantic_core import to_jsonable_python
 
 
 class DummyProvider(BaseModel):
-    """Dummy Provider for error handling with logs."""
+    """虚拟提供者
+
+    用于日志错误处理的默认提供者。
+    """
 
     provider: str = "not_passed_to_kwargs"
 
 
 class LoggingService(metaclass=SingletonMeta):
-    """Logging Service class responsible for managing logging settings and handling logs.
+    """日志服务类
+
+    负责管理日志设置和处理日志记录。
 
     Attributes
     ----------
-    _user_settings : Optional[UserSettings]
-        User Settings object.
-    _system_settings : Optional[SystemSettings]
-        System Settings object.
+    _user_settings : UserSettings | None
+        用户设置对象
+    _system_settings : SystemSettings | None
+        系统设置对象
     _logging_settings : LoggingSettings
-        LoggingSettings object containing the current logging settings.
+        日志设置对象
     _handlers_manager : HandlersManager
-        HandlersManager object managing logging handlers.
-
-    Methods
-    -------
-    __init__(system_settings, user_settings)
-        Logging Manager Constructor.
-
-    log(user_settings, system_settings, route, func, kwargs, exec_info or None, custom_headers or None)
-        Log command output and relevant information.
-
-    logging_settings
-        Property to access the current logging settings.
-
-    logging_settings.setter(value)
-        Setter method to update the logging settings.
-
-    _setup_handlers()
-        Setup Logging Handlers.
-
-    _log_startup(route or None, custom_headers or None)
-        Log startup information.
+        日志处理器管理器
     """
 
     _logger = logging.getLogger("openbb.logging_service")
@@ -67,16 +55,16 @@ class LoggingService(metaclass=SingletonMeta):
         system_settings: SystemSettings,
         user_settings: UserSettings,
     ) -> None:
-        """Define the Logging Service Constructor.
+        """初始化日志服务
 
-        Sets up the logging settings and handlers and then logs the startup information.
+        设置日志配置和处理器，然后记录启动信息。
 
         Parameters
         ----------
         system_settings : SystemSettings
-            System Settings, by default None
+            系统设置
         user_settings : UserSettings
-            User Settings, by default None
+            用户设置
         """
         if system_settings.logging_suppress is True:
             return

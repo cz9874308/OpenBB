@@ -1,4 +1,7 @@
-"""Insider Trading Standard Model."""
+"""内部交易标准模型
+
+本模块定义了内部人交易查询和数据的标准接口。
+"""
 
 from datetime import (
     date as dateType,
@@ -17,7 +20,15 @@ from pydantic import Field, field_validator
 
 
 class InsiderTradingQueryParams(QueryParams):
-    """Insider Trading Query."""
+    """内部交易查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        股票代码
+    limit : int | None
+        返回记录数限制
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
     limit: int | None = Field(
@@ -28,12 +39,15 @@ class InsiderTradingQueryParams(QueryParams):
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str) -> str:
-        """Convert field to uppercase."""
+        """将股票代码转换为大写"""
         return v.upper()
 
 
 class InsiderTradingData(Data):
-    """Insider Trading Data."""
+    """内部交易数据
+
+    包含公司内部人士的交易记录。
+    """
 
     symbol: str | None = Field(
         default=None, description=DATA_DESCRIPTIONS.get("symbol", "")
@@ -88,7 +102,7 @@ class InsiderTradingData(Data):
     )
     @classmethod
     def date_validate(cls, v):  # pylint: disable=E0213
-        """Return formatted datetime."""
+        """验证并格式化日期"""
         if v:
             filing_date = parser.isoparse(str(v))
             if filing_date.time() == time(0, 0):

@@ -1,4 +1,8 @@
-"""Yahoo Finance provider module."""
+"""Yahoo Finance 数据提供者模块
+
+雅虎财经数据 API 集成。
+提供股票、ETF、期货、期权等市场数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_yfinance.models.active import YFActiveFetcher

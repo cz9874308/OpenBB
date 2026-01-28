@@ -1,1 +1,4 @@
-"""Quantitative analysis extension for OpenBB Platform."""
+"""量化分析扩展模块
+
+提供量化分析工具的 API 端点。
+"""

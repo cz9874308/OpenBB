@@ -1,4 +1,7 @@
-"""Key Metrics Standard Model."""
+"""关键指标标准模型
+
+本模块定义了公司关键指标查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -12,19 +15,28 @@ from pydantic import Field, field_validator
 
 
 class KeyMetricsQueryParams(QueryParams):
-    """Key Metrics Query."""
+    """关键指标查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        股票代码
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
 
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str) -> str:
-        """Convert field to uppercase."""
+        """将股票代码转换为大写"""
         return v.upper()
 
 
 class KeyMetricsData(Data):
-    """Key Metrics Data."""
+    """关键指标数据
+
+    包含公司的关键财务指标，如市值等。
+    """
 
     symbol: str = Field(description=DATA_DESCRIPTIONS.get("symbol", ""))
     period_ending: dateType | None = Field(

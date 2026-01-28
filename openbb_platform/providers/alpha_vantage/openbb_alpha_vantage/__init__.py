@@ -1,4 +1,8 @@
-"""Alpha Vantage Provider module."""
+"""Alpha Vantage 数据提供者模块
+
+Alpha Vantage 金融数据 API 集成。
+提供股票历史价格、EPS 等数据。
+"""
 
 from openbb_alpha_vantage.models.equity_historical import AVEquityHistoricalFetcher
 from openbb_alpha_vantage.models.historical_eps import AVHistoricalEpsFetcher

@@ -6,19 +6,22 @@ from openbb_core.app.model.obbject import OBBject
 
 
 class Registry:
-    """Registry for OBBjects."""
+    """OBBject 注册表类。
+
+    存储和管理命令执行结果，支持按索引或键访问。
+    """
 
     def __init__(self):
-        """Initialize the registry."""
+        """初始化注册表。"""
         self._obbjects: list[OBBject] = []
 
     @staticmethod
     def _contains_obbject(uuid: str, obbjects: list[OBBject]) -> bool:
-        """Check if obbject with uuid is in the registry."""
+        """检查注册表中是否包含指定 uuid 的 OBBject。"""
         return any(obbject.id == uuid for obbject in obbjects)
 
     def register(self, obbject: OBBject) -> bool:
-        """Designed to add an OBBject instance to the registry."""
+        """将 OBBject 实例添加到注册表。"""
         if (
             isinstance(obbject, OBBject)
             and not self._contains_obbject(obbject.id, self._obbjects)
@@ -29,7 +32,7 @@ class Registry:
         return False
 
     def get(self, arg: int | str) -> OBBject | None:
-        """Return the obbject with index or key."""
+        """根据索引或键返回 OBBject。"""
         if isinstance(arg, int):
             return self._get_by_index(arg)
         if isinstance(arg, str):
@@ -38,14 +41,14 @@ class Registry:
         raise ValueError("Couldn't get the `OBBject` with the provided argument.")
 
     def _get_by_key(self, key: str) -> OBBject | None:
-        """Return the obbject with key."""
+        """根据键返回 OBBject。"""
         for obbject in self._obbjects:
             if obbject.extra.get("register_key", "") == key:
                 return obbject
         return None
 
     def _get_by_index(self, idx: int) -> OBBject | None:
-        """Return the obbject at index idx."""
+        """根据索引返回 OBBject。"""
         # the list should work as a stack
         # i.e., the last element needs to be accessed by idx=0 and so on
         reversed_list = list(reversed(self._obbjects))
@@ -57,7 +60,7 @@ class Registry:
         return reversed_list[idx]
 
     def remove(self, idx: int = -1):
-        """Remove the obbject at index idx, default is the last element."""
+        """移除指定索引的 OBBject，默认移除最后一个元素。"""
         # the list should work as a stack
         # i.e., the last element needs to be accessed by idx=0 and so on
         reversed_list = list(reversed(self._obbjects))
@@ -66,10 +69,10 @@ class Registry:
 
     @property
     def all(self) -> dict[int, dict]:
-        """Return all obbjects in the registry."""
+        """返回注册表中的所有 OBBject。"""
 
         def _handle_standard_params(obbject: OBBject) -> str:
-            """Handle standard params for obbjects."""
+            """处理 OBBject 的标准参数。"""
             standard_params_json = ""
             std_params = getattr(
                 obbject, "_standard_params", {}
@@ -83,7 +86,7 @@ class Registry:
             return standard_params_json
 
         def _handle_data_repr(obbject: OBBject) -> str:
-            """Handle data representation for obbjects."""
+            """处理 OBBject 的数据表示。"""
             data_repr = ""
             if hasattr(obbject, "results") and obbject.results:
                 data_schema = (
@@ -115,12 +118,12 @@ class Registry:
 
     @property
     def obbjects(self) -> list[OBBject]:
-        """Return all obbjects in the registry."""
+        """返回注册表中的所有 OBBject 列表。"""
         return self._obbjects
 
     @property
     def obbject_keys(self) -> list[str]:
-        """Return all obbject keys in the registry."""
+        """返回注册表中的所有 OBBject 键。"""
         return [
             obbject.extra["register_key"]
             for obbject in self._obbjects

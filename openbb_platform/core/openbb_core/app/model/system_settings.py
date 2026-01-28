@@ -1,7 +1,10 @@
-"""The OpenBB Platform System Settings."""
+"""OpenBB 平台系统设置模块
+
+本模块定义了 OpenBB 平台的系统级设置。
+"""
 
 import json
-import platform as pl  # I do this so that the import doesn't conflict with the variable name
+import platform as pl  # 避免与变量名冲突
 from pathlib import Path
 from typing import Literal
 
@@ -20,7 +23,34 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 
 
 class SystemSettings(Tagged):
-    """System settings model."""
+    """系统设置模型
+
+    包含 OpenBB 平台的系统级配置，如日志设置、API 设置等。
+    此模型是不可变的（frozen=True）。
+
+    Attributes
+    ----------
+    os : str
+        操作系统名称
+    python_version : str
+        Python 版本
+    platform : str
+        平台信息
+    version : str
+        OpenBB 版本
+    core : str
+        OpenBB Core 版本
+    logging_* : various
+        日志相关设置
+    api_settings : APISettings
+        FastAPI 配置
+    python_settings : PythonSettings
+        Python SDK 配置
+    debug_mode : bool
+        调试模式
+    test_mode : bool
+        测试模式
+    """
 
     # System section
     os: str = str(pl.system())
@@ -61,23 +91,31 @@ class SystemSettings(Tagged):
     model_config = ConfigDict(validate_assignment=True, frozen=True)
 
     def __repr__(self) -> str:
-        """Return a string representation of the model."""
+        """返回模型的字符串表示"""
         return f"{self.__class__.__name__}\n\n" + "\n".join(
             f"{k}: {v}" for k, v in self.model_dump().items()
         )
 
     @staticmethod
     def create_json(path: Path, template: dict | None = None) -> None:
-        """Create an empty JSON file."""
+        """创建 JSON 配置文件
+
+        Parameters
+        ----------
+        path : Path
+            文件路径
+        template : dict | None, optional
+            模板内容，默认为空字典
+        """
         path.write_text(json.dumps(obj=template or {}, indent=4), encoding="utf-8")
 
-    # TODO: Figure out why this works only opposite to what the docs say
+    # TODO: 弄清楚为什么这与文档说的相反
     # https://docs.pydantic.dev/latest/concepts/validators/#model-validators
-    # based on docs first argument should be self, but it works only with cls
+    # 根据文档第一个参数应该是 self，但只有 cls 才有效
     @model_validator(mode="after")  # type: ignore
     @classmethod
     def create_openbb_directory(cls, values: "SystemSettings") -> "SystemSettings":
-        """Create the OpenBB directory if it doesn't exist."""
+        """如果 OpenBB 目录不存在则创建"""
         obb_dir = Path(values.openbb_directory).resolve()
         user_settings = Path(values.user_settings_path).resolve()
         system_settings = Path(values.system_settings_path).resolve()
@@ -97,8 +135,26 @@ class SystemSettings(Tagged):
     @field_validator("logging_handlers")
     @classmethod
     def validate_logging_handlers(cls, v):
-        """Validate the logging handlers."""
+        """验证日志处理器
+
+        确保日志处理器是有效的类型。
+
+        Parameters
+        ----------
+        v : list[str]
+            日志处理器列表
+
+        Returns
+        -------
+        list[str]
+            验证后的日志处理器列表
+
+        Raises
+        ------
+        ValueError
+            如果处理器类型无效
+        """
         for value in v:
             if value not in ["stdout", "stderr", "noop", "file"]:
-                raise ValueError("Invalid logging handler")
+                raise ValueError("无效的日志处理器")
         return v

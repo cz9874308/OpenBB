@@ -1,4 +1,7 @@
-"""Currency Historical Price Standard Model."""
+"""外汇历史价格标准模型
+
+本模块定义了外汇历史价格查询和数据的标准接口。
+"""
 
 from datetime import (
     date as dateType,
@@ -16,7 +19,17 @@ from pydantic import Field, field_validator
 
 
 class CurrencyHistoricalQueryParams(QueryParams):
-    """Currency Historical Price Query."""
+    """外汇历史价格查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        货币对代码（可用 CURR1-CURR2 或 CURR1CURR2 格式）
+    start_date : date | None
+        开始日期
+    end_date : date | None
+        结束日期
+    """
 
     symbol: str = Field(
         description=QUERY_DESCRIPTIONS.get("symbol", "")
@@ -33,14 +46,17 @@ class CurrencyHistoricalQueryParams(QueryParams):
 
     @field_validator("symbol", mode="before", check_fields=False)
     def validate_symbol(cls, v: str | list[str] | set[str]):  # pylint: disable=E0213
-        """Convert field to uppercase and remove '-'."""
+        """验证并格式化货币对代码"""
         if isinstance(v, str):
             return v.upper().replace("-", "")
         return ",".join([symbol.upper().replace("-", "") for symbol in list(v)])
 
 
 class CurrencyHistoricalData(Data):
-    """Currency Historical Price Data."""
+    """外汇历史价格数据
+
+    包含货币对的 OHLCV 数据。
+    """
 
     date: dateType | datetime = Field(description=DATA_DESCRIPTIONS.get("date", ""))
     open: float | None = Field(
@@ -63,7 +79,7 @@ class CurrencyHistoricalData(Data):
     @field_validator("date", mode="before", check_fields=False)
     @classmethod
     def date_validate(cls, v):  # pylint: disable=E0213
-        """Return formatted datetime."""
+        """验证并格式化日期"""
         if ":" in str(v):
             return parser.isoparse(str(v))
         return parser.parse(str(v)).date()

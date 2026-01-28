@@ -1,4 +1,7 @@
-"""Company News Standard Model."""
+"""公司新闻标准模型
+
+本模块定义了公司新闻查询和数据的标准接口。
+"""
 
 from datetime import (
     date as dateType,
@@ -16,7 +19,19 @@ from pydantic import Field, NonNegativeInt, field_validator
 
 
 class CompanyNewsQueryParams(QueryParams):
-    """Company news Query."""
+    """公司新闻查询参数
+
+    Attributes
+    ----------
+    symbol : str | None
+        股票代码
+    start_date : date | None
+        开始日期
+    end_date : date | None
+        结束日期
+    limit : NonNegativeInt | None
+        返回记录数限制
+    """
 
     symbol: str | None = Field(
         default=None,
@@ -36,12 +51,15 @@ class CompanyNewsQueryParams(QueryParams):
     @field_validator("symbol", mode="before")
     @classmethod
     def symbols_validate(cls, v):
-        """Validate the symbols."""
+        """验证股票代码"""
         return v.upper() if v else None
 
 
 class CompanyNewsData(Data):
-    """Company News Data."""
+    """公司新闻数据
+
+    包含新闻文章的详细信息。
+    """
 
     date: datetime = Field(
         description=DATA_DESCRIPTIONS.get("date", "") + " The date of publication."

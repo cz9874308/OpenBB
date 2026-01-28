@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-"""Main CLI Module."""
+"""CLI 主控制器模块
+
+实现 CLI 的主菜单和核心功能。
+"""
 
 # pylint: disable=too-many-public-methods,import-outside-toplevel, too-many-function-args
 # pylint: disable=too-many-branches,no-member,C0302,too-many-return-statements, inconsistent-return-statements
@@ -62,7 +65,10 @@ session = Session()
 
 
 class CLIController(BaseController):
-    """CLI Controller class."""
+    """CLI 控制器类。
+
+    主菜单控制器，管理平台路由和脚本执行。
+    """
 
     CHOICES_COMMANDS = ["record", "stop", "exe", "results"]
     CHOICES_MENUS = [
@@ -79,7 +85,7 @@ class CLIController(BaseController):
     CHOICES_GENERATION = False
 
     def __init__(self, jobs_cmds: list[str] | None = None):
-        """Construct CLI controller."""
+        """构造 CLI 控制器。"""
         self.ROUTINE_FILES: dict[str, Path] = dict()
         self.ROUTINE_DEFAULT_FILES: dict[str, Path] = dict()
         self.ROUTINE_PERSONAL_FILES: dict[str, Path] = dict()
@@ -101,7 +107,7 @@ class CLIController(BaseController):
         self.update_runtime_choices()
 
     def _generate_platform_commands(self):
-        """Generate Platform based commands/menus."""
+        """生成基于平台的命令/菜单。"""
 
         def method_call_class(self, _, controller, name, parent_path, target):
             self.queue = self.load_class(
@@ -110,7 +116,7 @@ class CLIController(BaseController):
 
         # pylint: disable=unused-argument
         def method_call_command(self, _, router: str):
-            """Call command."""
+            """调用命令。"""
             mdl = getattr(obb, router)
             df = pd.DataFrame.from_dict(mdl.model_dump(), orient="index")
             if isinstance(df.columns, pd.RangeIndex):
@@ -151,7 +157,7 @@ class CLIController(BaseController):
             setattr(self, f"call_{router}", bound_method)
 
     def update_runtime_choices(self):
-        """Update runtime choices."""
+        """更新运行时选项。"""
         routines_directory = Path(session.user.preferences.export_directory, "routines")
 
         if session.prompt_session and session.settings.USE_PROMPT_TOOLKIT:
@@ -214,7 +220,7 @@ class CLIController(BaseController):
             self.update_completer(choices)
 
     def print_help(self):
-        """Print help."""
+        """打印帮助信息。"""
         mt = MenuText("")
         mt.add_info("\nConfigure CLI")
         mt.add_menu(
@@ -281,7 +287,7 @@ class CLIController(BaseController):
         self.update_runtime_choices()
 
     def call_settings(self, _):
-        """Process settings command."""
+        """处理 settings 命令。"""
         from openbb_cli.controllers.settings_controller import (
             SettingsController,
         )
@@ -289,7 +295,7 @@ class CLIController(BaseController):
         self.queue = self.load_class(SettingsController, self.queue)
 
     def call_exe(self, other_args: list[str]):
-        """Process exe command."""
+        """处理 exe 命令。"""
         # Merge rest of string path to other_args and remove queue since it is a dir
         other_args += self.queue
 
@@ -464,7 +470,7 @@ class CLIController(BaseController):
 
 
 def handle_job_cmds(jobs_cmds: list[str] | None) -> list[str] | None:
-    """Handle job commands."""
+    """处理作业命令。"""
     export_path = ""
     if jobs_cmds and "export" in jobs_cmds[0]:
         commands = jobs_cmds[0].split("/")
@@ -496,7 +502,7 @@ def handle_job_cmds(jobs_cmds: list[str] | None) -> list[str] | None:
 
 # pylint: disable=unused-argument
 def run_cli(jobs_cmds: list[str] | None = None, test_mode=False):
-    """Run the CLI menu."""
+    """运行 CLI 菜单。"""
     ret_code = 1
     t_controller = CLIController(jobs_cmds)
     an_input = ""
@@ -609,7 +615,7 @@ def run_cli(jobs_cmds: list[str] | None = None, test_mode=False):
 
 
 def insert_start_slash(cmds: list[str]) -> list[str]:
-    """Insert a slash at the beginning of a command sequence."""
+    """在命令序列开头插入斜杠。"""
     if not cmds[0].startswith("/"):
         cmds[0] = f"/{cmds[0]}"
     if cmds[0].startswith("/home"):
@@ -739,7 +745,7 @@ def replace_dynamic(match: re.Match, special_arguments: dict[str, str]) -> str:
 
 
 def run_routine(file: str, routines_args: str | None = None):
-    """Execute command routine from .openbb file."""
+    """从 .openbb 文件执行命令例程。"""
     user_routine_path = Path(session.user.preferences.export_directory, "routines")
     default_routine_path = ASSETS_DIRECTORY / "routines" / file
 
@@ -809,7 +815,7 @@ def main(
 
 
 def parse_args_and_run():
-    """Parse input arguments and run CLI."""
+    """解析输入参数并运行 CLI。"""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         prog="cli",
@@ -905,7 +911,7 @@ def parse_args_and_run():
 def launch(
     debug: bool = False, dev: bool = False, queue: list[str] | None = None
 ) -> None:
-    """Launch CLI."""
+    """启动 CLI。"""
     if queue:
         main(debug, dev, queue, module="")
     else:

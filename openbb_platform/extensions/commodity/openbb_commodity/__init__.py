@@ -1,1 +1,4 @@
-"""OpenBB Commodity Extension."""
+"""大宗商品数据扩展模块
+
+提供大宗商品市场数据相关的 API 端点。
+"""

@@ -1,4 +1,8 @@
-"""Tiingo provider module."""
+"""Tiingo 数据提供者模块
+
+Tiingo 金融数据 API 集成。
+提供股票、加密货币、外汇历史价格和新闻数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_tiingo.models.company_news import TiingoCompanyNewsFetcher

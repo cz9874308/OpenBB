@@ -1,4 +1,7 @@
-"""Fixed Income Router."""
+"""固定收益路由模块
+
+定义固定收益相关的 API 端点和命令。
+"""
 
 # pylint: disable=W0613:unused-argument
 

@@ -1,21 +1,30 @@
-"""Custom exceptions for the provider."""
+"""数据提供者自定义异常模块
+
+本模块定义了数据提供者相关的自定义异常类。
+"""
 
 from openbb_core.app.model.abstract.error import OpenBBError
 
 
 class EmptyDataError(OpenBBError):
-    """Exception raised for empty data."""
+    """空数据异常
+
+    当查询未返回任何数据时抛出。
+    """
 
     def __init__(
         self, message: str = "No results found. Try adjusting the query parameters."
     ):
-        """Initialize the exception."""
+        """初始化异常"""
         self.message = message
         super().__init__(self.message)
 
 
 class UnauthorizedError(OpenBBError):
-    """Exception raised for an unauthorized provider request response."""
+    """未授权异常
+
+    当 API 请求未通过授权验证时抛出。
+    """
 
     def __init__(
         self,
@@ -25,7 +34,7 @@ class UnauthorizedError(OpenBBError):
         ),
         provider_name: str = "<provider name>",
     ):
-        """Initialize the exception."""
+        """初始化异常"""
         if provider_name and provider_name != "<provider name>":
             msg = message
             if isinstance(msg, tuple):

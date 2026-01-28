@@ -1,4 +1,7 @@
-"""Index Router."""
+"""指数路由模块
+
+定义市场指数相关的 API 端点和命令。
+"""
 
 from openbb_core.app.model.command_context import CommandContext
 from openbb_core.app.model.example import APIEx

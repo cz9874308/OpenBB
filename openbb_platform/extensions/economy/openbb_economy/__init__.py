@@ -1,1 +1,4 @@
-"""OpenBB Economy Extension."""
+"""经济数据扩展模块
+
+提供全球经济数据相关的 API 端点。
+"""

@@ -1,4 +1,8 @@
-"""SEC provider module."""
+"""SEC 数据提供者模块
+
+美国证券交易委员会 (SEC) 数据集成。
+提供公司申报、内幕交易、机构持仓等监管数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_sec.models.cik_map import SecCikMapFetcher

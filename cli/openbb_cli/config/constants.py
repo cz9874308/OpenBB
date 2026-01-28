@@ -1,4 +1,7 @@
-"""Constants module."""
+"""CLI 常量模块
+
+定义 CLI 使用的路径、超时、标签等常量。
+"""
 
 from pathlib import Path
 

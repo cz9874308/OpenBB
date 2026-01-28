@@ -1,4 +1,8 @@
-"""stockgrid provider module."""
+"""Stockgrid 数据提供者模块
+
+Stockgrid 空头成交量数据集成。
+提供股票空头成交量等另类数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_stockgrid.models.short_volume import StockgridShortVolumeFetcher

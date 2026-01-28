@@ -1,4 +1,7 @@
-"""Equity Router."""
+"""股票路由模块
+
+定义股票相关的 API 端点和命令。
+"""
 
 from openbb_core.app.model.command_context import CommandContext
 from openbb_core.app.model.example import APIEx

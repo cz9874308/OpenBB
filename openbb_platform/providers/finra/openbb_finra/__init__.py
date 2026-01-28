@@ -1,4 +1,8 @@
-"""FINRA provider module."""
+"""FINRA 数据提供者模块
+
+金融业监管局 (FINRA) 数据集成。
+提供场外交易、空头利息等市场数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_finra.models.equity_short_interest import FinraShortInterestFetcher

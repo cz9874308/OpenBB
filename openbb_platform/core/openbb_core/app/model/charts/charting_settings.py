@@ -1,4 +1,7 @@
-"""Charting settings."""
+"""图表设置模块
+
+本模块定义了图表相关的配置设置。
+"""
 
 import importlib
 from pathlib import Path
@@ -13,14 +16,50 @@ if TYPE_CHECKING:
 
 # pylint: disable=too-many-instance-attributes
 class ChartingSettings:
-    """Charting settings."""
+    """图表设置
+
+    汇集图表相关的系统和用户设置。
+
+    Attributes
+    ----------
+    logging_suppress : bool
+        是否抑制日志
+    version : str
+        OpenBB 版本
+    python_version : str
+        Python 版本
+    test_mode : bool
+        测试模式
+    debug_mode : bool
+        调试模式
+    headless : bool
+        无头模式
+    user_data_directory : str
+        用户数据目录
+    user_exports_directory : str
+        用户导出目录
+    user_styles_directory : str
+        用户样式目录
+    chart_style : str
+        图表样式
+    table_style : str
+        表格样式
+    """
 
     def __init__(
         self,
         user_settings: Optional["UserSettings"] = None,
         system_settings: Optional["SystemSettings"] = None,
     ):
-        """Initialize charting settings."""
+        """初始化图表设置
+
+        Parameters
+        ----------
+        user_settings : UserSettings | None, optional
+            用户设置，默认自动创建
+        system_settings : SystemSettings | None, optional
+            系统设置，默认自动创建
+        """
         user_settings_module = importlib.import_module(
             "openbb_core.app.model.user_settings", "UserSettings"
         )

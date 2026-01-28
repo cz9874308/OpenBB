@@ -1,4 +1,8 @@
-"""FMP Provider Modules."""
+"""FMP 数据提供者模块
+
+Financial Modeling Prep 金融数据 API 集成。
+提供股票、财务报表、ETF、加密货币等数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_fmp.models.analyst_estimates import FMPAnalystEstimatesFetcher

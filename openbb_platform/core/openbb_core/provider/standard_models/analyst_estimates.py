@@ -1,4 +1,7 @@
-"""Analyst Estimates Standard Model."""
+"""分析师预测标准模型
+
+本模块定义了分析师预测查询和数据的标准接口。
+"""
 
 from datetime import date as dateType
 
@@ -12,19 +15,28 @@ from pydantic import Field, field_validator
 
 
 class AnalystEstimatesQueryParams(QueryParams):
-    """Analyst Estimates Query."""
+    """分析师预测查询参数
+
+    Attributes
+    ----------
+    symbol : str
+        股票代码
+    """
 
     symbol: str = Field(description=QUERY_DESCRIPTIONS.get("symbol", ""))
 
     @field_validator("symbol", mode="before", check_fields=False)
     @classmethod
     def to_upper(cls, v: str) -> str:
-        """Convert field to uppercase."""
+        """将股票代码转换为大写"""
         return v.upper()
 
 
 class AnalystEstimatesData(Data):
-    """Analyst Estimates data."""
+    """分析师预测数据
+
+    包含分析师对公司收入、利润等的预测。
+    """
 
     symbol: str = Field(description=DATA_DESCRIPTIONS.get("symbol", ""))
     date: dateType = Field(description=DATA_DESCRIPTIONS.get("date", ""))

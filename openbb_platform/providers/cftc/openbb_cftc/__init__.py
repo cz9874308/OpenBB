@@ -1,4 +1,8 @@
-"""CFTC provider extension module."""
+"""CFTC 数据提供者模块
+
+美国商品期货交易委员会 (CFTC) 数据集成。
+提供交易者承诺 (COT) 报告数据。
+"""
 
 from openbb_cftc.models.cot import CftcCotFetcher
 from openbb_cftc.models.cot_search import CftcCotSearchFetcher

@@ -1,4 +1,7 @@
-"""Econometrics Router."""
+"""计量经济学路由模块
+
+定义计量经济学分析相关的 API 端点和命令。
+"""
 
 from itertools import combinations
 from typing import Literal

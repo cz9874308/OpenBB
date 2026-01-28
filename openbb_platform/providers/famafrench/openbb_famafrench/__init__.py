@@ -1,4 +1,8 @@
-"""OpenBB Fama-French Provider module."""
+"""Fama-French 数据提供者模块
+
+Fama-French 因子研究数据集成。
+提供三因子、五因子、组合收益等学术研究数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_famafrench.models.breakpoints import FamaFrenchBreakpointFetcher

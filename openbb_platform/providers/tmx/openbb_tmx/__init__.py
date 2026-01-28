@@ -1,4 +1,8 @@
-"""TMX Provider Module."""
+"""TMX 数据提供者模块
+
+多伦多证券交易所集团 (TMX) 数据集成。
+提供加拿大股票、ETF、债券、期权等市场数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_tmx.models.available_indices import TmxAvailableIndicesFetcher

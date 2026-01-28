@@ -1,4 +1,8 @@
-"""Biztoc provider module."""
+"""BizToc 数据提供者模块
+
+BizToc 新闻聚合 API 集成。
+提供全球财经新闻数据。
+"""
 
 from openbb_biztoc.models.world_news import BiztocWorldNewsFetcher
 from openbb_core.provider.abstract.provider import Provider

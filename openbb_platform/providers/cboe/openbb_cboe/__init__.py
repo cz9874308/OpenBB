@@ -1,4 +1,8 @@
-"""Cboe provider module."""
+"""CBOE 数据提供者模块
+
+芝加哥期权交易所 (CBOE) 数据集成。
+提供期权链、指数数据、期货曲线等衍生品数据。
+"""
 
 from openbb_cboe.models.available_indices import CboeAvailableIndicesFetcher
 from openbb_cboe.models.equity_historical import CboeEquityHistoricalFetcher

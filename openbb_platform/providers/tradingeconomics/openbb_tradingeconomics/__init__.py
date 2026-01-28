@@ -1,4 +1,8 @@
-"""Trading Economics provider module."""
+"""Trading Economics 数据提供者模块
+
+Trading Economics 全球宏观经济数据集成。
+提供经济日历等宏观经济事件数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_tradingeconomics.models.economic_calendar import TEEconomicCalendarFetcher

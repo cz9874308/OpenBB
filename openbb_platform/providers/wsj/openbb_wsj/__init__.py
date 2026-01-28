@@ -1,4 +1,8 @@
-"""WSJ provider module."""
+"""WSJ 数据提供者模块
+
+华尔街日报 (WSJ) 数据集成。
+提供 ETF 涨跌榜、活跃 ETF 等市场数据。
+"""
 
 from openbb_core.provider.abstract.provider import Provider
 from openbb_wsj.models.active import WSJActiveFetcher

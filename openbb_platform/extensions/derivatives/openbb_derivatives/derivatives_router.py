@@ -1,4 +1,7 @@
-"""Derivatives Router."""
+"""衍生品路由模块
+
+定义衍生品相关的 API 端点和命令。
+"""
 
 from openbb_core.app.router import Router
 

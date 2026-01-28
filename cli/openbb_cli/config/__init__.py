@@ -1,1 +1,1 @@
-"""Core config init."""
+"""CLI 配置包初始化模块"""

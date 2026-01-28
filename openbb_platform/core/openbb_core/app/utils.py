@@ -1,4 +1,30 @@
-"""Utility functions for the OpenBB Core app."""
+"""OpenBB 核心应用工具函数模块
+
+本模块提供数据转换和通用工具函数。
+
+核心功能
+--------
+
+- **数据转换**: BaseModel ↔ DataFrame ↔ list ↔ dict ↔ ndarray
+- **列提取**: 从 DataFrame 中提取目标列
+- **缓存目录**: 获取用户缓存目录
+- **参数验证**: 检查单项参数
+
+数据转换流程
+------------
+
+```
+用户数据（多种格式）
+        ↓
+    convert_to_basemodel()
+        ↓
+    list[Data] 或 Data
+        ↓
+    basemodel_to_df()
+        ↓
+    DataFrame
+```
+"""
 
 import ast
 import json
@@ -21,7 +47,20 @@ def basemodel_to_df(
     data: list[Data] | Data,
     index: str | None = None,
 ) -> "DataFrame":
-    """Convert list of BaseModel to a Pandas DataFrame."""
+    """将 BaseModel 列表转换为 Pandas DataFrame
+
+    Parameters
+    ----------
+    data : list[Data] | Data
+        要转换的数据，可以是单个 Data 对象或列表
+    index : str | None, optional
+        要设置为索引的列名，默认为 None
+
+    Returns
+    -------
+    DataFrame
+        转换后的 DataFrame
+    """
     # pylint: disable=import-outside-toplevel
     from pandas import DataFrame, to_datetime
 
@@ -61,7 +100,20 @@ def basemodel_to_df(
 def df_to_basemodel(
     df: Union["DataFrame", "Series"], index: bool = False
 ) -> list[Data]:
-    """Convert from a Pandas DataFrame to list of BaseModel."""
+    """将 Pandas DataFrame 转换为 BaseModel 列表
+
+    Parameters
+    ----------
+    df : DataFrame | Series
+        要转换的 DataFrame 或 Series
+    index : bool, optional
+        是否将索引作为列包含在结果中，默认为 False
+
+    Returns
+    -------
+    list[Data]
+        转换后的 Data 对象列表
+    """
     # pylint: disable=import-outside-toplevel
     from pandas import MultiIndex, Series, to_datetime
 
@@ -90,7 +142,25 @@ def df_to_basemodel(
 
 
 def list_to_basemodel(data_list: list) -> list[Data]:
-    """Convert a list to a list of BaseModel."""
+    """将列表转换为 BaseModel 列表
+
+    支持多种元素类型：Data、dict、DataFrame、Series。
+
+    Parameters
+    ----------
+    data_list : list
+        要转换的列表
+
+    Returns
+    -------
+    list[Data]
+        转换后的 Data 对象列表
+
+    Raises
+    ------
+    ValueError
+        如果列表元素类型不支持
+    """
     # pylint: disable=import-outside-toplevel
     from pandas import DataFrame, Series
 
@@ -108,7 +178,23 @@ def list_to_basemodel(data_list: list) -> list[Data]:
 
 
 def dict_to_basemodel(data_dict: dict) -> Data:
-    """Convert a dictionary to BaseModel."""
+    """将字典转换为 BaseModel
+
+    Parameters
+    ----------
+    data_dict : dict
+        要转换的字典
+
+    Returns
+    -------
+    Data
+        转换后的 Data 对象
+
+    Raises
+    ------
+    ValueError
+        如果验证失败
+    """
     try:
         return Data(**data_dict)
     except ValidationError as e:
@@ -118,7 +204,25 @@ def dict_to_basemodel(data_dict: dict) -> Data:
 
 
 def ndarray_to_basemodel(array: "ndarray") -> list[Data]:
-    """Convert a NumPy array to list of BaseModel."""
+    """将 NumPy 数组转换为 BaseModel 列表
+
+    仅支持二维数组，行作为记录。
+
+    Parameters
+    ----------
+    array : ndarray
+        要转换的二维数组
+
+    Returns
+    -------
+    list[Data]
+        转换后的 Data 对象列表
+
+    Raises
+    ------
+    ValueError
+        如果数组不是二维的
+    """
     # Assuming a 2D array where rows are records
     if array.ndim != 2:
         raise ValueError("Only 2D arrays are supported.")
@@ -128,7 +232,25 @@ def ndarray_to_basemodel(array: "ndarray") -> list[Data]:
 
 
 def convert_to_basemodel(data) -> Data | list[Data]:
-    """Dispatch function to convert different types to BaseModel."""
+    """将不同类型转换为 BaseModel 的分发函数
+
+    自动识别输入数据类型并调用相应的转换函数。
+
+    Parameters
+    ----------
+    data : Any
+        要转换的数据，支持 Data、list、dict、DataFrame、Series、ndarray
+
+    Returns
+    -------
+    Data | list[Data]
+        转换后的 Data 对象或列表
+
+    Raises
+    ------
+    ValueError
+        如果数据类型不支持
+    """
     # pylint: disable=import-outside-toplevel
     from numpy import ndarray
     from pandas import DataFrame, Series
@@ -147,7 +269,25 @@ def convert_to_basemodel(data) -> Data | list[Data]:
 
 
 def get_target_column(df: "DataFrame", target: str) -> "Series":
-    """Get target column from time series data."""
+    """从时间序列数据中获取目标列
+
+    Parameters
+    ----------
+    df : DataFrame
+        数据 DataFrame
+    target : str
+        目标列名
+
+    Returns
+    -------
+    Series
+        目标列数据
+
+    Raises
+    ------
+    ValueError
+        如果目标列不存在
+    """
     if target not in df.columns:
         choices = ", ".join(df.columns)
         raise ValueError(
@@ -157,7 +297,20 @@ def get_target_column(df: "DataFrame", target: str) -> "Series":
 
 
 def get_target_columns(df: "DataFrame", target_columns: list[str]) -> "DataFrame":
-    """Get target columns from time series data."""
+    """从时间序列数据中获取多个目标列
+
+    Parameters
+    ----------
+    df : DataFrame
+        数据 DataFrame
+    target_columns : list[str]
+        目标列名列表
+
+    Returns
+    -------
+    DataFrame
+        仅包含目标列的 DataFrame
+    """
     # pylint: disable=import-outside-toplevel
     from pandas import DataFrame
 
@@ -168,7 +321,16 @@ def get_target_columns(df: "DataFrame", target_columns: list[str]) -> "DataFrame
 
 
 def get_user_cache_directory() -> str:
-    """Get user cache directory."""
+    """获取用户缓存目录
+
+    从用户设置文件中读取缓存目录配置，
+    如果未配置则使用默认值。
+
+    Returns
+    -------
+    str
+        缓存目录路径
+    """
     file = SystemSettings().model_dump()["user_settings_path"]
 
     with open(file) as settings_file:
@@ -187,7 +349,27 @@ def get_user_cache_directory() -> str:
 
 
 def check_single_item(value: str | None, message: str | None = None) -> str | None:
-    """Check that string contains a single item."""
+    """检查字符串是否只包含单个项目
+
+    如果字符串包含逗号或分号分隔符，则抛出错误。
+
+    Parameters
+    ----------
+    value : str | None
+        要检查的字符串
+    message : str | None, optional
+        自定义错误消息，默认为 None
+
+    Returns
+    -------
+    str | None
+        原始值（如果验证通过）
+
+    Raises
+    ------
+    OpenBBError
+        如果字符串包含多个项目
+    """
     if value and isinstance(value, str) and ("," in value or ";" in value):
         raise OpenBBError(message if message else "multiple items not allowed")
     return value
